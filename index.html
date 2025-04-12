@@ -22,17 +22,17 @@
         <div class="menuToggle"> </div>
         <nav>
             <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#">About</a></li>
-                <li><a href="">Dropdown <b>&#x25BC;</b></a>
+                <li><a href="#"><span><ion-icon name="home-outline"></ion-icon></span></a></li>
+                <li><a href="#teachers">Вчителі</a></li>
+                <li><a href="">Профілі <b>&#x25BC;</b></a>
                     <ul>
                         <li><a href="#">Product 01</a></li>
                         <li><a href="#">Product 02</a></li>
                         <li><a href="#">Product 03</a></li>
                     </ul>
                 </li>
-                <li><a href="#">Services</a></li>
-                <li><a href="#">Contact</a></li>
+                <li><a href="#response">Відгуки</a></li>
+                <li><a href="#footer">Контакти</a></li>
             </ul>
             
         </nav>              
@@ -194,6 +194,82 @@
             </div>   
         </div>
         <!--end Teachers-->
+        <!--Response-->
+       
+        <div class="content respCont">
+            <h3 class="chapter">Відгуки</h3>
+            <h1>Відгуки наших випускників</h1>
+            <p>
+                Ми завжди щиро радіємо успіхам наших випускників.Радіємо, що вони вступили до престижних ВУЗів, отримали роботу в провідних компаніх, мають можливість опановувати нові вершини. А їхні щирі відгуки - надихають нас , бо дають нам впевненість - ми все робимо вірно!
+            </p>
+        </div>
+        <div id="response">
+            <div id="respBackground"></div>
+            <div class="responseCard">
+                <div class="imgResponse">
+                    <img src="./img/team-3.jpg" alt="">
+                </div>
+                <div class="contentResponse">
+                    <h2>Кустова Валерия</h2>
+                    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+                    </p>
+                </div>
+            </div>
+            <div class="responseCard">
+                <div class="imgResponse">
+                    <img src="./img/team-4.jpg" alt="">
+                </div>
+                <div class="contentResponse">
+                    <h2>Крамаренко Максим</h2>
+                    <p>УLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+                    </p>
+                </div>
+            </div>
+            <div class="responseCard">
+                <div class="imgResponse">
+                    <img src="./img/team-2.jpg" alt="">
+                </div>
+                <div class="contentResponse">
+                    <h2>Гунчук Ирина</h2>
+                    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+                    </p>
+                </div>
+            </div>
+    </div>
+    <!--End Response-->
+    <footer id="footer">
+        <div class="footerAfter"></div>
+        <div class="brand">
+            <h2>ЛІТ</h2>
+            <p>Ліцей інформаційних технологій</p>
+            <p>Олександрійської міської ради</p>
+        </div>
+        <div class="contact">
+            <ul>
+                <li><span><ion-icon name="location-outline"></ion-icon> </span>
+                    Григорія Усика 39 м. Олександрія
+                </li>
+                <li><span><ion-icon name="mail-outline"></ion-icon>
+                </span>
+                    email
+                </li>
+                <li><span><ion-icon name="link-outline"></ion-icon></span>
+                    <a href="">http://www.oleksandria-lit.edukit.kr.ua/</a>
+
+                </li>
+            </ul>
+        </div>
+        <div class="footerProfile">
+            <ul>
+                <li><a href="">Математично-інфрпмаційний</a></li>
+                <li><a href="">Української філології</a></li>
+                <li><a href="">Біолого-хімічний</a></li>
+                <li><a href="">Історичний</a></li>
+                <li><a href="">Математично-економічний</a></li>
+                <li><a href="">Технологічний</a></li>
+            </ul>
+        </div>
+    </footer>
     </div>
     <script>
         let menuToggle = document.querySelector('.menuToggle');
@@ -209,7 +285,7 @@
             slidesPerView: 3,
             spaceBetween: 30,
             // autoplay: {
-            //     delay: 1500,
+            //     delay: 2000,
             //     disableOnInteraction: false,
             // },
             pagination: {
