@@ -527,6 +527,10 @@ header ul li ul li{
         flex-direction: column;
         align-items: center;
     }
+    #teachers{
+        width: 100%;
+        margin: 5% 0;
+    }
     footer h1{
         font-size: 1.2em;
     }
@@ -538,5 +542,71 @@ header ul li ul li{
     }
     footer ul li{
         margin: 10px 0;
+    }
+ }
+ @media(max-width: 768px){
+    p{
+        font-size: 18px;
+    }
+    .content h1{
+        font-size: 40px;
+    }
+    #baseImg h1 {
+        font-size: 32px;
+        text-align: center;
+    }
+    #baseImg h3 {
+        font-size: 21px;
+    }
+    #offer .imgBox img{
+        width: 354px;
+        height: 496px;
+    }
+    #why .imgBox img{
+        width: 354px;
+        height: 493px;
+    }
+    .btnItem .title {
+        font-size: 23px;
+    }   
+    .btnItem .icon{
+        color: #fff;
+        font-size: 40px;
+    } 
+    .swiper {
+        width: 80%;
+        height: 48vh;
+        margin: auto 0;
+    }
+    #response
+    {
+        justify-content: center;
+    }
+    #response .responseCard
+        {
+        flex-direction: column;
+        width: 350px;
+        justify-content: center;
+        height: auto;
+        }
+    #response  .responseCard .imgResponse
+        {
+        max-width: 100%;
+        }
+        .contentResponse{
+            height: 300px;
+        }
+        .contentResponse{
+            height: auto;
+        }
+    footer{
+        flex-direction: column;
+        height: auto;
+    }
+    footer .brand{
+        margin-top: 40px;
+    }
+    .footerAfter{
+        top: -15%
     }
  }
