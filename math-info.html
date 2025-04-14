@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Document</title>
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"> 
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+
+</head>
+<body>
+    <!--Navbar start-->
+    <header>
+        <a href="#" class="logo">ЛІТ</a>
+        <div class="menuToggle"> </div>
+        <nav>
+            <ul>
+                <li><a href="#"><span><ion-icon name="home-outline"></ion-icon></span></a></li>
+                <li><a href="index.html#teachers">Вчителі</a></li>
+                <li><a href="">Профілі <b>&#x25BC;</b></a>
+                    <ul>
+                        <li><a href="#">Математично-інформаційний</a></li>
+                        <li><a href="#">Української філології</a></li>
+                        <li><a href="#">Біолого-хімічний</a></li>
+                        <li><a href="">Історичний</a></li>
+                    </ul>
+                </li>
+                <li><a href="index.html#response">Відгуки</a></li>
+                <li><a href="#footer">Контакти</a></li>
+            </ul>
+            
+        </nav>              
+    </header>
+    
+    <!--end Navbar-->
+    <!--Info profile-->
+    <div id="info-profile">
+      <div class="content">
+        <h3 class="chapter">Математично-інформаційний профіль</h3>
+        <h1>Інформатика</h1>
+      </div>
+      <div class="powerPoint">
+        <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vQyT-TgVWqt4VFkIAtgzwdrFYnx8TttFGDQb2HctORDPqYfnJTEkHX4Kmfo8mA0ZQ/pubembed?start=true&loop=true&delayms=3000"
+          frameborder="0" width="1024" height="600" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
+        </iframe>
+      </div>
+      <footer id="footer">
+        <div class="footerAfter"></div>
+        <div class="brand">
+            <h2>ЛІТ</h2>
+            <p>Ліцей інформаційних технологій</p>
+            <p>Олександрійської міської ради</p>
+        </div>
+        <div class="contact">
+            <ul>
+                <li><span><ion-icon name="location-outline"></ion-icon> </span>
+                    Григорія Усика 39 м. Олександрія
+                </li>
+                <li><span><ion-icon name="mail-outline"></ion-icon>
+                </span>
+                    email
+                </li>
+                <li><span><ion-icon name="link-outline"></ion-icon></span>
+                    <a href="">http://www.oleksandria-lit.edukit.kr.ua/</a>
+
+                </li>
+            </ul>
+        </div>
+        <div class="footerProfile">
+            <ul>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="math-info.html">Математично-інформаційний</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="">Української філології</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="">Біолого-хімічний</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="">Історичний</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="">Математично-економічний</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="">Технологічний</a></li>
+            </ul>
+        </div>
+      </footer>
+    </div>
+    <!--end Info profile-->
+    <script>
+      let menuToggle = document.querySelector('.menuToggle');
+      let header = document.querySelector('header');
+      menuToggle.onclick = function(){
+          header.classList.toggle('active');
+      }
+    </script>
+</body>
+</html>    
