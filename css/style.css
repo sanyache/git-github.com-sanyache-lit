@@ -299,12 +299,9 @@ header ul li ul li{
     
 }
 .swiper-slide .card .textOnImg h4{
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%,0);
     color: #ffffff;
     font-size: 28px;
+    text-align: center;
 
     
 }
@@ -423,7 +420,8 @@ header ul li ul li{
 #response .responseCard .imgResponse img
 {
   width: 100%;
-  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
 }
 #response .responseCard .contentResponse
 {
@@ -527,6 +525,10 @@ header ul li ul li{
         flex-direction: column;
         align-items: center;
     }
+    .swiper-slide .card .textOnImg h4{
+        font-size: 18px;
+        margin-top: 5px;
+    }
     #teachers{
         width: 100%;
         margin: 5% 0;
@@ -620,3 +622,17 @@ header ul li ul li{
  #info-profile .content{
     text-align: center;
  }
+ @media(max-width: 1060px){
+    .powerPoint iframe{
+        width: 600px;
+        height: 350px;
+        
+    }
+ }
+ @media(max-width: 650px){
+    .powerPoint iframe{
+        width: 300px;
+        height: 175px;
+        
+    }
+ }      
