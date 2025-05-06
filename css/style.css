@@ -23,12 +23,9 @@ header{
     align-items: center;
     z-index: 100;
 }
-header .logo{
-    color: #fff;
-    font-size: 24px;
-    font-weight: 600;
-    text-transform: uppercase;
-    text-decoration: none;
+header .logo img{
+    width: 60px;
+    height: 60px;
 }
 header ul{
     position: relative;
@@ -225,12 +222,6 @@ header ul li ul li{
     padding-left: 5%;
     z-index: 10;
 }
-/* #why .imgBox{
-    position: relative;
-    min-width: 50%;
-    width: 50%;
-    min-height: 600px; 
-} */
 
 #why .imgBox img{
     float: left;
