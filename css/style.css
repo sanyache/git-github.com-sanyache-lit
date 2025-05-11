@@ -24,8 +24,8 @@ header{
     z-index: 100;
 }
 header .logo img{
-    width: 60px;
-    height: 46px;
+    width: 55px;
+    height: 60px;
 }
 header ul{
     position: relative;
@@ -225,6 +225,9 @@ header ul li ul li{
 
 #why .imgBox img{
     float: left;
+    width: 617px;
+    height: 861px;
+    overflow: hidden;
 }
 #whyBackground {
     position: absolute;
