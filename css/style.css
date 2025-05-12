@@ -339,7 +339,7 @@ header ul li ul li{
     margin-bottom: 12%;
 }
 .swiper.teacherSwiper{
-    height: 70vh;
+    height: 600px;
 }  
 .teacher{
     position: relative;
@@ -637,8 +637,5 @@ header ul li ul li{
         top: var(--swiper-pagination-top, auto) !important;
         left: -8px !important;
         width: 100% !important;
-    }
-    .teacherSwiper{
-        height: 75vh;
     }
  }      
