@@ -490,6 +490,9 @@ header ul li ul li{
         width: 80%;
         margin: 0;
     }
+    #why .content p{
+        text-align: center;
+    }
     .content.respCont{
         width: 80%;
         margin-top: 18%;
@@ -627,7 +630,8 @@ header ul li ul li{
         
     }
     .swiper{
-        height: 350px;
+        height: 330px;
+        width: 330px;
     }
     .swiper-horizontal>.swiper-pagination-bullets, .swiper-pagination-bullets.swiper-pagination-horizontal, .swiper-pagination-custom, .swiper-pagination-fraction {
         bottom: var(--swiper-pagination-bottom, 0px) !important;
@@ -646,5 +650,12 @@ header ul li ul li{
     }
     .swiper.teacherSwiper{
         height: 550px;
+    }
+    #why .imgBox img{
+        width: 340px;
+        height: 473px;
+    }
+    .swiper-slide .card .textOnImg h4 {
+        font-size: 16px;
     }
  }      
