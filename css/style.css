@@ -494,9 +494,6 @@ header ul li ul li{
         width: 80%;
         margin-top: 18%;
     }
-    /* #offer .content{
-        width: 80%;
-    } */
     .imgBox{
         width: initial;
     }
@@ -630,12 +627,24 @@ header ul li ul li{
         
     }
     .swiper{
-        height: 44vh;
+        height: 350px;
     }
     .swiper-horizontal>.swiper-pagination-bullets, .swiper-pagination-bullets.swiper-pagination-horizontal, .swiper-pagination-custom, .swiper-pagination-fraction {
-        bottom: var(--swiper-pagination-bottom, -20px) !important;
+        bottom: var(--swiper-pagination-bottom, 0px) !important;
         top: var(--swiper-pagination-top, auto) !important;
         left: -8px !important;
         width: 100% !important;
+    }
+    .teacher{
+        height: 450px;
+    }
+    .teacher .teacherContent h2{
+        font-size: 24px;
+    }
+    .teacher .teacherContent p{
+        font-size: 18px;
+    }
+    .swiper.teacherSwiper{
+        height: 550px;
     }
  }      
