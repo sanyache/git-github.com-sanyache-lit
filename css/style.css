@@ -571,7 +571,7 @@ header ul li ul li{
     } 
     .swiper {
         width: 80%;
-        height: 48vh;
+        height: 48%;
         margin: auto 0;
     }
     #response
@@ -628,5 +628,8 @@ header ul li ul li{
         width: 300px;
         height: 175px;
         
+    }
+    .swiper{
+        height: 30vh;
     }
  }      
