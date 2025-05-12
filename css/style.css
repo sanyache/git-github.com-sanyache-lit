@@ -632,6 +632,12 @@ header ul li ul li{
     .swiper{
         height: 44vh;
     }
+    .swiper-horizontal>.swiper-pagination-bullets, .swiper-pagination-bullets.swiper-pagination-horizontal, .swiper-pagination-custom, .swiper-pagination-fraction {
+        bottom: var(--swiper-pagination-bottom, -20px) !important;
+        top: var(--swiper-pagination-top, auto) !important;
+        left: -8px !important;
+        width: 100% !important;
+    }
     .teacherSwiper{
         height: 75vh;
     }
