@@ -15,7 +15,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
+    <script src="js/main.js"></script>
 
 </head>
 <body>
@@ -56,19 +56,120 @@
     <!--end baseImg-->
     <div id="container">
         <!--Offer start-->
-        <div id="offer">
-            <div class="imgBox">
-                <img src="img/about.jpg" alt="">
+        <div id="circle">
+            <div class="circleBox">
+                <div class="icon">
+                    <div class="imgBx active" style="--i:0" data-id="content0">
+                        <img src="students_img/IMG_0140.jpg">
+                    </div>
+                    <div class="imgBx" style="--i:1" data-id="content1">
+                        <img src="students_img/IMG_0141.jpg" >
+                    </div>
+                    <div class="imgBx" style="--i:2" data-id="content2">
+                        <img src="students_img/IMG_0151.jpg">
+                    </div>
+                    <div class="imgBx" style="--i:3" data-id="content3">
+                        <img src="students_img/IMG_0153.jpg">
+                    </div>
+                    <div class="imgBx" style="--i:4" data-id="content4">
+                        <img src="students_img/IMG_0160.jpg">
+                    </div>
+                    <div class="imgBx" style="--i:5" data-id="content5">
+                        <img src="students_img/IMG_0170.jpg">
+                    </div>
+                    <div class="imgBx" style="--i:6" data-id="content6">
+                        <img src="students_img/IMG_0173.jpg">
+                    </div>
+                    <div class="imgBx" style="--i:7" data-id="content7">
+                        <img src="students_img/IMG_0183.jpg">
+                    </div>
+                </div>
+                <div class="circleContent">
+                    <div class="contentBx active" id="content0">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0140.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Chempion from II round
+                                    olimpaid from mathemetics
+                                </span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contentBx" id="content1">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0141.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Product Designer</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contentBx" id="content2">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0151.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Product Designer</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contentBx" id="content3">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0153.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Product Designer</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contentBx" id="content4">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0160.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Product Designer</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contentBx" id="content5">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0170.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Product Designer</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contentBx" id="content6">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0173.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Product Designer</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contentBx" id="content7">
+                        <div class="card">
+                            <div class="imgBx">
+                                <img src="students_img/IMG_0183.jpg" alt="">
+                            </div>
+                            <div class="textBx">
+                                <h2>Balashova Olena<br><span>Product Designer</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>    
+            
             </div>
-            <div class="content">
-                <h3 class="chapter">Про нас</h3>
-                <h1>Найкращий вибір для отримання якісної освіти</h1>
-                <p>Високий рівень конкуренції на ринку праці вимагає спеціалістів, які мають якісну,
-                    сучасну освіту. Ти повинен бути креативним, вміти швидко приймати рішення,
-                    мати грунтовні академічні знання, вміти користуватися сучасними інформаційними 
-                    технологіями. Якщо ти бажаєш рухатися вперед і розвиватися - долучайся до нас уже сьогодні.
-                </p>
-            </div>    
         </div>
         <!--end Offer-->
         <!--Why start-->
@@ -552,79 +653,6 @@
         </div>
     </footer>
     </div>
-    <script>
-        let menuToggle = document.querySelector('.menuToggle');
-        let header = document.querySelector('header');
-        menuToggle.onclick = function(){
-            header.classList.toggle('active');
-        }
-    </script>
-    <!-- Initialize Swiper -->
-    <script>
-        var swiper = new Swiper(".mySwiper", {
-            loop: true,    
-            slidesPerView: 3,
-            spaceBetween: 30,
-            autoplay: {
-                delay: 3500,
-                disableOnInteraction: false,
-            },
-            pagination: {
-                el: ".swiper-pagination",
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            breakpoints: {
-                320: {
-                slidesPerView: 1,
-                spaceBetween: 10,
-                },
-                768: {
-                slidesPerView: 2,
-                spaceBetween: 20,
-                },
-                1024: {
-                slidesPerView: 3,
-                spaceBetween: 30,
-                },
-            },
-        });
-    </script>
-    <script>
-        var swiper = new Swiper(".teacherSwiper", {
-            loop: true,    
-            slidesPerView: 3,
-            spaceBetween: 30,
-            autoplay: {
-                delay: 3500,
-                disableOnInteraction: false,
-            },
-            pagination: {
-                el: ".swiper-pagination",
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            breakpoints: {
-                320: {
-                slidesPerView: 1,
-                spaceBetween: 10,
-                },
-                768: {
-                slidesPerView: 2,
-                spaceBetween: 20,
-                },
-                1024: {
-                slidesPerView: 3,
-                spaceBetween: 30,
-                },
-            },
-        });
-    </script>
+    
 </body>
 </html>
