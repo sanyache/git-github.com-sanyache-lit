@@ -6,7 +6,7 @@
 
 
 body{
-    min-height: 100vh;
+    min-height: 100dvh;
     font-family: "Open Sans", sans-serif;
 }
 p{
@@ -179,7 +179,7 @@ header ul li ul li{
 #circle{
     position: relative;
     width: 100%;
-    min-height: 80vh;
+    min-height: 80dvh;
     padding: 80px 0;
     display: flex;
     justify-content: center;
@@ -207,7 +207,7 @@ header ul li ul li{
 }
 .circleBox .icon .imgBx{
     position: absolute;
-    --dot-size: min(80px, 12vw);
+    --dot-size: min(90px, 14vw);
     width: var(--dot-size);
     height: var(--dot-size);
     border-radius: 50%;
@@ -254,7 +254,7 @@ header ul li ul li{
     border-right: 4px solid #fff;
     border-radius: 50%;
     animation: animate_01 5s linear infinite;
-    z-index: 1;
+    z-index: 0;
     pointer-events: none;
 }
 @keyframes animate_01{
@@ -274,7 +274,7 @@ header ul li ul li{
     border-right: 4px solid #fff;
     border-radius: 50%;
     animation: animate_02 2.5s linear infinite;
-    z-index: 1;
+    z-index: 0;
     pointer-events: none;
 }
 @keyframes animate_02{
@@ -287,6 +287,7 @@ header ul li ul li{
 }
 .contentBx{
     position: absolute;
+    z-index: 1;
     transform: scale(0);
     transition: 0.5s;
     opacity: 0;
@@ -309,10 +310,11 @@ header ul li ul li{
 }
 .contentBx .card .imgBx{
     position: relative;
-    width: 180px;
-    height: 180px;
+    width:  max(180px, 17vw);
+    aspect-ratio: 1;
     border-radius: 10px;
     overflow: hidden;
+    z-index: 10;
 }
 .contentBx .card .imgBx img{
     position: absolute;
@@ -785,7 +787,7 @@ header ul li ul li{
  }
  @media(max-width: 750px){
     #circle{
-        min-height: 60vh;
+        min-height: 60dvh;
         padding: 60px 0;
     }
     .circleBox{
