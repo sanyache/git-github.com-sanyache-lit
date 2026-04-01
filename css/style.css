@@ -310,7 +310,7 @@ header ul li ul li{
 }
 .contentBx .card .imgBx{
     position: relative;
-    width:  max(180px, 17vw);
+    width:  max(180px, 16vw);
     aspect-ratio: 1;
     border-radius: 10px;
     overflow: hidden;
