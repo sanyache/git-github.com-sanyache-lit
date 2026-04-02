@@ -176,15 +176,31 @@ header ul li ul li{
     position: relative;
     width: 100%;
 } 
+#offer{
+    position: relative;
+    margin: 70px 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(rgba(84, 166, 224, 0.038), rgb(26 117 237 / 65%));
+
+}
+#offer .content{
+    width: 40%;
+    text-align: left;
+    margin-right:  10%;
+    padding-left: 40px;
+}
 #circle{
     position: relative;
-    width: 100%;
+    width: 60%;
     min-height: 80dvh;
     padding: 80px 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(rgba(84, 166, 224, 0.038), rgb(26 117 237 / 65%));
+    
 }
 .circleBox{
     position: relative;
@@ -335,29 +351,15 @@ header ul li ul li{
     font-size: 18px;
 
 }
-#offer{
-    position: relative;
-    margin: 70px 0;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 
-}
-#offer .content{
-    width: 50%;
-    text-align: left;
-    margin-right:  10%;
-    padding-left: 40px;
-}
 .imgBox{
     position: relative;
     width: 50%;
     min-height: 600px;
 }
-#offer .imgBox img{
+/* #offer .imgBox img{
     float: right;
-}
+} */
 .content h1{
     font-family: "Jost", sans-serif;
     font-size: 50px;
@@ -785,8 +787,21 @@ header ul li ul li{
         
     }
  }
- @media(max-width: 750px){
+ @media(max-width: 1400px){
+    #offer .content {
+        padding-bottom: 25px;
+    }
+    #offer span {
+        font-size: 12px;
+    }
+    #offer h2{
+        font-size: 1.4em;
+    }
+    #offer .content{
+        padding-left: unset;
+    }
     #circle{
+        width: 100vw;
         min-height: 60dvh;
         padding: 60px 0;
     }
