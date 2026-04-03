@@ -825,6 +825,9 @@ header ul li ul li{
         inset: 24%;
         z-index: -1;
     }
+    .circleContent .textBx{
+        line-height: 1.3em;
+    }
 }
  @media(max-width: 650px){
     .powerPoint iframe{
