@@ -49,8 +49,8 @@
     var full = document.getElementById("viewer-full");
     if (!found) {
       title.textContent = "Матеріал не знайдено";
-      back.href = "../math-info.html#lessons-info";
-      back.textContent = "← До уроків";
+      back.href = "../math-info.html";
+      back.textContent = "← До профілю";
       full.style.display = "none";
       frame.style.display = "none";
       return;

@@ -73,41 +73,6 @@
     font-style: italic;
 }
 
-/* Картки мов на сторінці math-info.html */
-.lang-cards{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 30px;
-    margin: 20px 0 60px;
-    padding: 0 20px;
-}
-.lang-card{
-    width: 280px;
-    padding: 30px 20px;
-    border-radius: 14px;
-    background: #036eac;
-    color: #fff;
-    text-align: center;
-    text-decoration: none;
-    box-shadow: 0 8px 22px rgba(3, 110, 172, .3);
-    transition: transform .2s, background .2s;
-}
-.lang-card:hover{
-    transform: translateY(-5px);
-    background: #F14D5D;
-}
-.lang-card .lang-name{
-    display: block;
-    font-family: "Jost", sans-serif;
-    font-size: 40px;
-    font-weight: 700;
-}
-.lang-card .lang-sub{
-    font-size: 16px;
-    opacity: .9;
-}
-
 /* Сторінка перегляду матеріалу */
 .viewer{
     padding-top: 66px;
