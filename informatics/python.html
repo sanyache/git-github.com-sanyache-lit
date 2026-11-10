@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="informatics.css">
+    <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
+    <title>Python — уроки інформатики | ЛІТ</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+    <!--Navbar start-->
+    <header>
+        <a href="../index.html" class="logo"><img src="../img/android-chrome-192x192.png" alt=""></a>
+        <div class="menuToggle"> </div>
+        <nav>
+            <ul>
+                <li><a href="../index.html"><span><ion-icon name="home-outline"></ion-icon></span></a></li>
+                <li><a href="../index.html#teachers">Вчителі</a></li>
+                <li><a href="">Профілі <b>&#x25BC;</b></a>
+                    <ul>
+                        <li><a href="../math-info.html">Математично-інформаційний</a></li>
+                        <li><a href="../ukr.html">Української філології</a></li>
+                        <li><a href="../biolog.html">Біолого-хімічний</a></li>
+                        <li><a href="../history.html">Історичний</a></li>
+                    </ul>
+                </li>
+                <li><a href="../index.html#response">Відгуки</a></li>
+                <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSdXvXwIJ5CJgVaD4lukfof2SmTkrUc2xa6rbruH1fqG5T-exA/viewform">Реєстрація</a></li>
+            </ul>
+        </nav>
+    </header>
+    <!--end Navbar-->
+
+    <main id="lessons-page">
+        <div class="crumbs">
+            <a href="../math-info.html">Математично-інформаційний профіль</a> /
+            <a href="../math-info.html#lessons-info">Уроки інформатики</a> / Python
+        </div>
+        <div class="content">
+            <h3 class="chapter">Уроки інформатики</h3>
+            <h1>Python</h1>
+        </div>
+        <div id="lessons" data-lang="python"></div>
+    </main>
+
+    <footer id="footer">
+        <div class="footerAfter"></div>
+        <div class="brand">
+            <h2>ЛІТ</h2>
+            <p>Ліцей інформаційних технологій</p>
+            <p>Олександрійської міської ради</p>
+        </div>
+        <div class="contact">
+            <ul>
+                <li><span><ion-icon name="location-outline"></ion-icon> </span>
+                    <a href="https://maps.app.goo.gl/sR2r2t7XS39MpjhW9">Григорія Усика 39 м. Олександрія</a>
+                </li>
+                <li><span><ion-icon name="mail-outline"></ion-icon></span>
+                    licey.lit@gmail.com
+                </li>
+                <li><span><ion-icon name="link-outline"></ion-icon></span>
+                    <a href="http://www.oleksandria-lit.edukit.kr.ua/">http://www.oleksandria-lit.edukit.kr.ua/</a>
+                </li>
+            </ul>
+        </div>
+        <div class="footerProfile">
+            <ul>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="../math-info.html">Математично-інформаційний</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="../ukr.html">Української філології</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="../biolog.html">Біолого-хімічний</a></li>
+                <li><ion-icon name="chevron-forward-outline"></ion-icon>
+                    <a href="../history.html">Історичний</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script src="lessons.js"></script>
+    <script src="informatics.js"></script>
+    <script>
+      let menuToggle = document.querySelector('.menuToggle');
+      let header = document.querySelector('header');
+      menuToggle.onclick = function(){
+          header.classList.toggle('active');
+      }
+    </script>
+</body>
+</html>

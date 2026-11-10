@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Коник: найдешевший шлях</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mu:#6b7385;--bd:#d9dde5;--ac:#2f6fed;--ok:#1f9d55;--cd:#e8a317;--cur:#e5484d}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--card:#1b202b;--tx:#e8ebf2;--mu:#98a1b5;--bd:#303747;--ac:#6b9bff;--ok:#43c678;--cd:#f0b73a;--cur:#ff6b70}}
+:root[data-theme="dark"]{--bg:#12151c;--card:#1b202b;--tx:#e8ebf2;--mu:#98a1b5;--bd:#303747;--ac:#6b9bff;--ok:#43c678;--cd:#f0b73a;--cur:#ff6b70}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:12px;max-width:760px;margin:0 auto}
+h1{font-size:20px;margin:4px 0 10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
+input{width:100%;font:inherit;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+button{font:inherit;padding:10px 14px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);min-height:44px;cursor:pointer}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.row button{flex:1}
+.scroll{position:relative;overflow-x:auto;padding-bottom:6px}
+.cells{display:flex;gap:6px;width:max-content}
+.c{width:58px;border:2px solid var(--bd);border-radius:10px;text-align:center;padding:4px 2px;background:var(--bg)}
+.c .i{font-size:11px;color:var(--mu)}
+.c .v{font-weight:700;font-size:18px}
+.c .t{font-size:13px;color:var(--ac);min-height:20px}
+.c.cand{border-color:var(--cd)}
+.c.cur{border-color:var(--cur);box-shadow:0 0 0 2px var(--cur) inset}
+.c.path{background:color-mix(in srgb,var(--ok) 22%,transparent);border-color:var(--ok)}
+.leg{font-size:12px;color:var(--mu);display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.leg b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+#msg{min-height:66px}
+#res{font-weight:600}
+pre{margin:0;overflow:auto;max-height:280px;position:relative;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace}
+pre span{display:block;padding:0 6px;white-space:pre;border-radius:4px}
+pre span.on{background:color-mix(in srgb,var(--cd) 35%,transparent)}
+pre span::before{content:attr(data-n);display:inline-block;width:26px;color:var(--mu)}
+.sl{width:100%}
+</style></head><body>
+<h1>🦗 Коник: найдешевший шлях</h1>
+<div class="card">
+<label for="inp">Вартості позначок (через пробіл)</label>
+<input id="inp" inputmode="text" value="-5 7 20 1 1 20 2 10 1 1">
+<div class="row"><button class="p" id="go">Побудувати</button><button id="ex">Приклад</button></div>
+</div>
+<div class="card">
+<div class="scroll"><div class="cells" id="cells"></div></div>
+<div class="leg"><span><b style="background:var(--cur)"></b>поточна</span><span><b style="background:var(--cd)"></b>кандидати</span><span><b style="background:var(--ok)"></b>шлях</span><span>сині цифри — total[i]</span></div>
+</div>
+<div class="card"><div id="msg"></div><div id="res"></div>
+<input type="range" class="sl" id="sl" min="0" value="0">
+<div class="row"><button id="b0">⏮</button><button id="bp">◀</button><button class="p" id="bn">▶</button><button id="ba">⏵ Авто</button></div>
+</div>
+<div class="card"><label>Код C++ (виконуваний рядок підсвічено)</label><pre id="code"></pre></div>
+<script>
+(function(){try{
+var CODE=`#include<iostream>
+#include<vector>
+
+using namespace std;
+
+int main(){
+
+    int n;
+    cout<<"Enter number of steps= ";
+    cin>>n;
+    int val[n], total[n];
+    cout<<"Enter value for every step ";
+    for(int i=0; i<n; i++){
+        cin>>val[i];
+    }
+    total[0] = val[0];
+    total[1] = min(val[0] + val[1], val[1]);
+    for(int i=2; i<n; i++){
+        total[i] = min(total[i-1], total[i-2]) + val[i];
+    }
+    cout<<"min value= "<<total[n-1]<<'\\n';
+    int current_price = total[n-1] - val[n-1] ;
+    int current_index = n-1;
+    vector<int> path;
+    path.push_back(val[n-1]);
+    while(current_index > 0){
+        
+        if(total[current_index] == total[current_index-1] + val[current_index]){
+            current_index = current_index - 1;
+        } else {
+            current_index = current_index - 2;
+        }
+        path.push_back(val[current_index]);
+        current_price -= val[current_index]; 
+    }
+
+    for(int i = path.size()-1; i >= 0; i--){
+        cout<<path[i]<<' ';
+    }
+    return 0;
+}`.split("\n");
+var $=function(id){return document.getElementById(id)};
+$("code").innerHTML=CODE.map((s,i)=>`<span data-n="${i+1}">${s.replace(/&/g,"&amp;").replace(/</g,"&lt;")||" "}</span>`).join("");
+let V=[],T=[],S=[],k=0,timer=null;
+function build(){
+  stop();
+  V=$("inp").value.trim().split(/[\s,;]+/).map(Number).filter(x=>!isNaN(x));
+  const n=V.length;S=[];T=[];
+  if(!n){S=[{l:10,k:0,m:"Введіть хоча б одне число."}];k=0;draw();return}
+  T[0]=V[0];S.push({l:16,k:1,cur:0,m:`total[0] = val[0] = <b>${V[0]}</b>`});
+  if(n>1){T[1]=Math.min(V[0]+V[1],V[1]);S.push({l:17,k:2,cur:1,cand:[0],m:`total[1] = min(val[0]+val[1], val[1]) = min(${V[0]+V[1]}, ${V[1]}) = <b>${T[1]}</b> (можна стартувати з 0-ї або 1-ї позначки)`})}
+  for(let i=2;i<n;i++){
+    const a=T[i-1],b=T[i-2];T[i]=Math.min(a,b)+V[i];
+    S.push({l:19,k:i+1,cur:i,cand:[i-1,i-2],m:`total[${i}] = min(total[${i-1}], total[${i-2}]) + val[${i}] = min(${a}, ${b}) + ${V[i]} = <b>${T[i]}</b>`});
+  }
+  let cur=n-1,path=[cur];
+  S.push({l:25,k:n,cur,path:[...path],m:`Мінімальна вартість = total[${n-1}] = <b>${T[n-1]}</b>. Тепер відновлюємо шлях з кінця: починаємо з позначки ${cur}.`});
+  while(cur>0){
+    let prev;
+    if(cur==1) prev=(T[1]==T[0]+V[1])?0:null;
+    else prev=(T[cur]==T[cur-1]+V[cur])?cur-1:cur-2;
+    if(prev===null){S.push({l:28,k:n,cur,path:[...path],m:`total[1] ≠ total[0] + val[1], тож коник стартував одразу з позначки 1. Відновлення завершено.`});break}
+    const one=prev==cur-1;
+    S.push({l:one?29:31,k:n,cur:prev,cand:[cur-1,cur-2].filter(x=>x>=0),path:[...path,prev],
+      m:`total[${cur}] ${one?"==":"≠"} total[${cur-1}] + val[${cur}] (${T[cur]} ${one?"==":"≠"} ${T[cur-1]+V[cur]}) → стрибок на <b>${one?1:2}</b> назад: ${cur} → ${prev}`});
+    path.push(prev);cur=prev;
+  }
+  const fin=[...path].reverse();
+  S.push({l:37,k:n,path:[...path],fin:fin,m:`Шлях (з початку): індекси ${fin.join(" → ")}`});
+  k=0;$("sl").max=S.length-1;draw();
+}
+function draw(){
+  const s=S[k]||{},n=V.length;
+  $("sl").value=k;$("sl").max=Math.max(S.length-1,0);
+  $("cells").innerHTML=V.map((v,i)=>{
+    let c="c";if(s.cand&&s.cand.includes(i))c+=" cand";if(s.path&&s.path.includes(i))c+=" path";if(s.cur===i)c+=" cur";
+    return `<div class="${c}"><div class="i">${i}</div><div class="v">${v}</div><div class="t">${i<(s.k||0)?T[i]:"·"}</div></div>`}).join("");
+  $("msg").innerHTML=`<small style="color:var(--mu)">Крок ${k+1}/${S.length}</small><br>${s.m||""}`;
+  $("res").innerHTML=s.fin?`Вихід: ${s.fin.map(i=>V[i]).join(" ")}<br>Сума: ${T[n-1]}`:"";
+  document.querySelectorAll("#code span").forEach((e,i)=>e.classList.toggle("on",i+1===s.l));
+  var on=document.querySelector("#code span.on");if(on){var p=$("code");p.scrollTop=on.offsetTop-p.clientHeight/2}
+  var cu=document.querySelector(".c.cur");if(cu){var sc=document.querySelector(".scroll");sc.scrollLeft=cu.offsetLeft-sc.clientWidth/2}
+}
+function stop(){if(timer){clearInterval(timer);timer=null}$("ba").textContent="⏵ Авто"}
+$("go").onclick=build;
+$("ex").onclick=()=>{$("inp").value="-5 7 20 1 1 20 2 10 1 1";build()};
+$("bn").onclick=()=>{stop();if(k<S.length-1){k++;draw()}};
+$("bp").onclick=()=>{stop();if(k>0){k--;draw()}};
+$("b0").onclick=()=>{stop();k=0;draw()};
+$("sl").oninput=e=>{stop();k=+e.target.value;draw()};
+$("ba").onclick=()=>{if(timer){stop();return}
+  if(k>=S.length-1)k=0;draw();$("ba").textContent="⏸ Пауза";
+  timer=setInterval(()=>{if(k<S.length-1){k++;draw()}else stop()},1100)};
+build();
+}catch(e){document.body.insertAdjacentHTML("afterbegin","<pre style='color:#e5484d;white-space:pre-wrap'>Помилка: "+e+"</pre>")}})();
+</script></body></html>
