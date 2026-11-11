@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Python CodeQuest — Місія врятувати цифровий світ</title>
+<style>
+:root {
+  --bg:#101629; --panel:#1b2742; --accent:#55e6c1;
+  --blue:#63a9ff; --red:#ff6b81; --text:#f2f5ff;
+  --muted:#aab7d3; --code-bg:#101a2e;
+}
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+body {
+  margin:0; min-height:100vh; min-height:100dvh;
+  padding:18px;
+  padding-left:max(18px, env(safe-area-inset-left));
+  padding-right:max(18px, env(safe-area-inset-right));
+  padding-bottom:max(18px, env(safe-area-inset-bottom));
+  font-family:Arial,sans-serif; color:var(--text);
+  background:#101629 radial-gradient(circle at top,#263b66,#101629 65%) no-repeat;
+  overflow-wrap:break-word;
+}
+.container { max-width:850px; margin:auto; }
+header { text-align:center; padding:18px 5px; }
+h1 { color:var(--accent); font-size:clamp(25px,6vw,40px); margin:8px 0; }
+h2 { color:var(--accent); font-size:clamp(19px,4.6vw,24px); margin:0 0 12px; }
+h3 { color:var(--muted); font-size:15px; margin:18px 0 8px; text-transform:uppercase; letter-spacing:.04em; }
+p, li { line-height:1.5; }
+.subtitle { color:var(--muted); }
+.panel {
+  background:var(--panel); border:1px solid #344665;
+  border-radius:18px; padding:22px; margin:16px 0;
+  box-shadow:0 10px 30px #0004;
+}
+button {
+  border:0; border-radius:12px; padding:14px 18px;
+  font:bold 16px Arial,sans-serif; cursor:pointer;
+  background:var(--accent); color:#102033;
+  min-height:48px; touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+@media (hover:hover) { button:not(:disabled):hover { filter:brightness(1.08); } }
+button:active:not(:disabled) { transform:scale(.98); }
+button:disabled { opacity:.55; cursor:default; }
+button.secondary { background:#293957; color:var(--text); border:1px solid #455b7e; }
+.primary { width:100%; margin-top:16px; }
+.row { display:flex; gap:10px; margin-top:16px; }
+.row button { flex:1; margin:0; }
+.answer {
+  display:block; width:100%; text-align:left;
+  margin:10px 0; background:#293957; color:var(--text);
+  border:1px solid #455b7e; font-weight:normal; line-height:1.4;
+}
+.answer.correct { background:#17634f; border-color:var(--accent); }
+.answer.wrong { background:#713747; border-color:var(--red); }
+.answer:disabled { opacity:1; }
+.progress { height:10px; background:#34415d; border-radius:20px; overflow:hidden; margin:15px 0; }
+.progress div { height:100%; width:0; background:var(--accent); transition:width .3s; }
+.stats { display:flex; justify-content:space-between; gap:6px 10px; flex-wrap:wrap; color:var(--muted); }
+.levels { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+.level { background:#293957; padding:12px 4px; text-align:center; border-radius:10px; font-size:13px; }
+.level.active { outline:2px solid var(--accent); color:var(--accent); }
+.level.done { background:#17634f; }
+.question { font-size:19px; line-height:1.5; }
+/* Код: відступи зберігаються, довгі рядки прокручуються, а не переносяться */
+pre, code, .line code {
+  font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;
+}
+pre {
+  white-space:pre; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  background:var(--code-bg); padding:15px; border-radius:10px;
+  color:#b9e7ff; line-height:1.55; font-size:15px; margin:14px 0;
+}
+:not(pre) > code { background:var(--code-bg); padding:1px 5px; border-radius:5px; color:#b9e7ff; }
+.note { color:var(--muted); font-size:14px; line-height:1.5; }
+.feedback { padding:14px; border-radius:10px; margin-top:15px; line-height:1.5; }
+.feedback.good { background:#145440; }
+.feedback.bad { background:#663345; }
+.hidden { display:none !important; }
+.robot { font-size:52px; animation:float 2s infinite ease-in-out; }
+@keyframes float { 50% { transform:translateY(-8px); } }
+@media (prefers-reduced-motion:reduce) { .robot { animation:none; } }
+
+/* Фінальна місія: збери програму */
+.parsons { display:flex; flex-direction:column; gap:6px; }
+.parsons.target {
+  min-height:120px; padding:10px; border:2px dashed #455b7e; border-radius:12px; background:var(--code-bg);
+  counter-reset:ln;
+}
+.parsons .empty { color:var(--muted); font-size:14px; padding:10px; text-align:center; }
+.line {
+  display:flex; align-items:center; gap:8px; width:100%; min-height:44px;
+  padding:8px 12px; text-align:left; font-weight:normal;
+  background:#293957; color:#b9e7ff; border:1px solid #455b7e; border-radius:10px;
+  overflow-x:auto;
+}
+.line code { white-space:pre; font-size:15px; background:none; padding:0; color:inherit; }
+.target .line { background:#1d2c49; }
+.target .line::before {
+  counter-increment:ln; content:counter(ln);
+  color:var(--muted); font:12px ui-monospace,Menlo,Consolas,monospace; min-width:16px;
+}
+.target .line.bad { border-color:var(--red); background:#4a2433; }
+.tests { width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
+.tests th, .tests td { padding:8px 6px; border-bottom:1px solid #344665; text-align:left; vertical-align:top; }
+.tests th { color:var(--muted); font-weight:normal; }
+.tests td:first-child { font-family:ui-monospace,Menlo,Consolas,monospace; }
+.tests tr.fail td { color:#ffb3c0; }
+
+@media (max-width:520px) {
+  body { padding:10px; padding-bottom:max(10px, env(safe-area-inset-bottom)); }
+  header { padding:8px 5px; }
+  .robot { font-size:42px; }
+  .panel { padding:16px; border-radius:14px; margin:12px 0; }
+  .levels { gap:5px; }
+  .level { padding:9px 2px; font-size:14px; font-weight:bold; }
+  .level .lv-word { display:none; }
+  .question { font-size:17px; }
+  pre { font-size:13.5px; padding:12px; }
+  .parsons.target { padding:6px; }
+  .line { padding:8px 8px; gap:6px; }
+  .line code { font-size:clamp(11px, 3.25vw, 13.5px); }
+  button { font-size:15px; }
+  .tests { font-size:13px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="robot">🤖</div>
+  <h1>Python CodeQuest</h1>
+  <div class="subtitle">Місія — врятувати цифровий світ!</div>
+</header>
+
+<section id="start" class="panel">
+  <h2>Вітаємо, програмісте!</h2>
+  <p>Цифровий світ опинився під загрозою. Щоб урятувати його, потрібно пройти шість рівнів і продемонструвати знання умовних операторів Python.</p>
+  <p>На тебе чекають 12 запитань і фінальне практичне завдання.</p>
+  <ul>
+    <li>Неповне розгалуження — <b>if</b></li>
+    <li>Повне розгалуження — <b>if-else</b></li>
+    <li>Багатоваріантне розгалуження — <b>if-elif-else</b></li>
+    <li>Логічні оператори — <b>and, or, not</b></li>
+  </ul>
+  <p><b>Максимум — 30 балів.</b></p>
+  <button class="primary" onclick="startGame()">🚀 Почати місію</button>
+</section>
+
+<section id="game" class="hidden">
+  <div class="panel">
+    <div class="stats">
+      <span id="levelTitle">Рівень 1</span>
+      <span>Бали: <b id="score">0</b></span>
+      <span id="questionNumber">Запитання 1/12</span>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div class="levels" id="levelMap"></div>
+  </div>
+
+  <div class="panel" id="questionPanel">
+    <h2 id="topic"></h2>
+    <div class="question" id="question"></div>
+    <pre id="code" class="hidden"></pre>
+    <p id="indentNote" class="note hidden">
+      Зверни увагу: відступи (пробіли на початку рядків) визначають,
+      які команди належать до if, elif або else.
+      У Python зазвичай використовують 4 пробіли.
+    </p>
+    <div id="answers"></div>
+    <div id="feedback" class="hidden"></div>
+    <button id="nextButton" class="primary hidden" onclick="nextQuestion()">Наступне запитання →</button>
+  </div>
+</section>
+
+<section id="finalTask" class="panel hidden">
+  <h2>🏆 Фінальна місія: збери програму</h2>
+  <p>Програма зчитує ціле число <code>score</code> — результат учня від 0 до 100 — і виводить оцінку:</p>
+  <ul>
+    <li>90–100 — «Відмінно»</li>
+    <li>70–89 — «Добре»</li>
+    <li>50–69 — «Задовільно»</li>
+    <li>0–49 — «Потрібно повторити»</li>
+    <li>інші значення — «Некоректний результат»</li>
+  </ul>
+  <p class="note">
+    Натискай рядки внизу, щоб додати їх у програму. Натисни рядок у програмі, щоб повернути його назад.
+    Обережно: <b>два рядки зайві</b> — вони містять помилки.
+    Бали: з 1-ї спроби — 6, з 2-ї — 4, далі — 2.
+  </p>
+
+  <h3>Твоя програма</h3>
+  <div id="program" class="parsons target"></div>
+
+  <h3>Доступні рядки</h3>
+  <div id="pool" class="parsons"></div>
+
+  <div class="row">
+    <button class="secondary" onclick="resetPuzzle()">↺ Почати знову</button>
+    <button id="checkButton" onclick="checkProgram()">Перевірити</button>
+  </div>
+  <div id="codeFeedback" class="hidden"></div>
+  <button id="finishButton" class="primary hidden" onclick="showResult()">Завершити місію</button>
+</section>
+
+<section id="result" class="panel hidden">
+  <div class="robot">🎉</div>
+  <h2>Місію завершено!</h2>
+  <h1 id="finalScore"></h1>
+  <h2 id="rank"></h2>
+  <p id="rankText"></p>
+  <button class="primary" onclick="location.reload()">🔄 Пройти ще раз</button>
+</section>
+</div>
+
+<script>
+const questions = [
+{
+ topic:"Рівень 1. Неповне розгалуження — if",
+ q:"Що станеться, якщо умова в конструкції if є хибною?",
+ code:"temperature = 25\nif temperature > 20:\n    print('Тепло')",
+ a:["Буде виконано print('Тепло')","Команда print буде пропущена","Програма обов'язково завершиться помилкою","Виконається команда else"],
+ correct:1,
+ explain:"Якщо умова if хибна, тіло умовного оператора пропускається. Програма продовжує виконання."
+},
+{
+ topic:"Рівень 1. Неповне розгалуження — if",
+ q:"Який результат виконання програми?",
+ code:"x = 8\nif x > 5:\n    print('Так')\nprint('Готово')",
+ a:["Так","Готово","Так, а потім Готово","Нічого не буде виведено"],
+ correct:2,
+ explain:"Умова 8 > 5 істинна, тому спочатку виводиться «Так», а потім виконується наступна команда."
+},
+{
+ topic:"Рівень 2. Повне розгалуження — if-else",
+ q:"Яку роль виконує else?",
+ code:"if condition:\n    команда_1\nelse:\n    команда_2",
+ a:["Виконується, коли умова істинна","Виконується, коли умова хибна","Перевіряє нову умову","Повторює цикл"],
+ correct:1,
+ explain:"Блок else виконується тоді, коли умова if хибна."
+},
+{
+ topic:"Рівень 2. Повне розгалуження — if-else",
+ q:"Що виведе програма?",
+ code:"x = 4\nif x % 2 == 0:\n    print('Парне')\nelse:\n    print('Непарне')",
+ a:["Парне","Непарне","4","Помилку"],
+ correct:0,
+ explain:"Остача від ділення 4 на 2 дорівнює 0, отже число парне."
+},
+{
+ topic:"Рівень 3. Багатоваріантне розгалуження",
+ q:"Для чого використовують elif?",
+ code:"if x > 0:\n    print('Додатне')\nelif x < 0:\n    print('Від’ємне')\nelse:\n    print('Нуль')",
+ a:["Для повторення команд","Для перевірки додаткової умови","Для завершення програми","Для введення даних"],
+ correct:1,
+ explain:"elif дозволяє перевірити наступну умову, якщо попередні умови були хибними."
+},
+{
+ topic:"Рівень 3. Багатоваріантне розгалуження",
+ q:"Який текст буде виведено?",
+ code:"x = 0\nif x > 0:\n    print('A')\nelif x < 0:\n    print('B')\nelse:\n    print('C')",
+ a:["A","B","C","A і C"],
+ correct:2,
+ explain:"Обидві умови хибні, тому виконується блок else."
+},
+{
+ topic:"Рівень 4. Логічний оператор and",
+ q:"Коли результат виразу A and B буде True?",
+ code:"A and B",
+ a:["Коли хоча б одна умова істинна","Коли обидві умови істинні","Коли обидві умови хибні","Завжди"],
+ correct:1,
+ explain:"Оператор and повертає True лише тоді, коли обидві умови істинні."
+},
+{
+ topic:"Рівень 4. Логічний оператор and",
+ q:"Що буде виведено?",
+ code:"age = 15\nif age >= 12 and age <= 17:\n    print('Підліток')\nelse:\n    print('Інший вік')",
+ a:["Підліток","Інший вік","15","Нічого"],
+ correct:0,
+ explain:"Обидві умови істинні: 15 не менше 12 і не більше 17."
+},
+{
+ topic:"Рівень 5. Логічний оператор or",
+ q:"Коли результат виразу A or B буде True?",
+ code:"A or B",
+ a:["Лише коли обидві умови істинні","Коли хоча б одна умова істинна","Лише коли обидві хибні","Ніколи"],
+ correct:1,
+ explain:"Оператор or повертає True, якщо істинна хоча б одна з умов."
+},
+{
+ topic:"Рівень 5. Логічний оператор or",
+ q:"Що буде виведено?",
+ code:"day = 'субота'\nif day == 'субота' or day == 'неділя':\n    print('Вихідний')\nelse:\n    print('Робочий день')",
+ a:["Вихідний","Робочий день","Субота","Помилка"],
+ correct:0,
+ explain:"Перша умова істинна, тому весь вираз із or істинний."
+},
+{
+ topic:"Рівень 6. Логічний оператор not",
+ q:"Що робить оператор not?",
+ code:"not True\nnot False",
+ a:["Об'єднує умови","Заперечує логічне значення","Перевіряє рівність","Порівнює числа"],
+ correct:1,
+ explain:"not змінює логічне значення на протилежне: True стає False, а False — True."
+},
+{
+ topic:"Рівень 6. Комбіновані умови",
+ q:"Який результат виконання програми?",
+ code:"x = 5\nif not (x > 10) and x > 0:\n    print('Так')\nelse:\n    print('Ні')",
+ a:["Так","Ні","True","False"],
+ correct:0,
+ explain:"x > 10 — хибно, тому not (x > 10) — істинно. Друга умова також істинна. Отже, виконується if."
+}
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+
+const $ = id => document.getElementById(id);
+
+function scrollToEl(el) {
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function startGame() {
+  $("start").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  renderQuestion();
+}
+
+function renderMap() {
+  const map = $("levelMap");
+  map.innerHTML = "";
+  for (let i = 0; i < 6; i++) {
+    const el = document.createElement("div");
+    el.className = "level";
+    if (i === Math.floor(current / 2)) el.classList.add("active");
+    if (i < Math.floor(current / 2)) el.classList.add("done");
+    el.innerHTML = '<span class="lv-word">Рівень </span>' + (i + 1);
+    map.appendChild(el);
+  }
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  $("topic").textContent = q.topic;
+  $("question").textContent = q.q;
+  $("code").textContent = q.code;
+  $("code").classList.remove("hidden");
+  $("indentNote").classList.remove("hidden");
+  $("levelTitle").textContent = "Рівень " + (Math.floor(current / 2) + 1);
+  $("questionNumber").textContent = "Запитання " + (current + 1) + "/" + questions.length;
+  $("score").textContent = score;
+  $("progressBar").style.width = (current / questions.length * 100) + "%";
+  $("feedback").className = "hidden";
+  $("nextButton").classList.add("hidden");
+
+  const answers = $("answers");
+  answers.innerHTML = "";
+  q.a.forEach((answer, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer";
+    btn.textContent = String.fromCharCode(65 + i) + ". " + answer;
+    btn.onclick = () => chooseAnswer(i, btn);
+    answers.appendChild(btn);
+  });
+  renderMap();
+}
+
+function chooseAnswer(index, button) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  document.querySelectorAll(".answer").forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add("correct");
+  });
+
+  const feedback = $("feedback");
+  if (index === q.correct) {
+    score += 2;
+    feedback.className = "feedback good";
+    feedback.innerHTML = "✅ <b>Правильно! +2 бали.</b><br>" + q.explain;
+  } else {
+    button.classList.add("wrong");
+    feedback.className = "feedback bad";
+    feedback.innerHTML = "❌ <b>Не зовсім правильно.</b><br>" + q.explain;
+  }
+
+  $("score").textContent = score;
+  const next = $("nextButton");
+  next.classList.remove("hidden");
+  next.textContent = current === questions.length - 1 ? "До фінального завдання →" : "Наступне запитання →";
+  // на телефоні пояснення і кнопка можуть бути нижче екрана
+  next.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) {
+    renderQuestion();
+    scrollToEl($("game"));
+  } else {
+    $("game").classList.add("hidden");
+    $("finalTask").classList.remove("hidden");
+    resetPuzzle();
+    scrollToEl($("finalTask"));
+  }
+}
+
+/* ===== Фінальна місія: збери програму з рядків ===== */
+// kind: input | if | elif | else | print | error
+const LINES = [
+  { id:"in",  text:"score = int(input())",            kind:"input" },
+  { id:"c0",  text:"if score < 0 or score > 100:",    kind:"if",   test:s => s < 0 || s > 100 },
+  { id:"p0",  text:"    print('Некоректний результат')", kind:"print", msg:"Некоректний результат" },
+  { id:"c1",  text:"elif score >= 90:",               kind:"elif", test:s => s >= 90 },
+  { id:"p1",  text:"    print('Відмінно')",            kind:"print", msg:"Відмінно" },
+  { id:"c2",  text:"elif score >= 70:",               kind:"elif", test:s => s >= 70 },
+  { id:"p2",  text:"    print('Добре')",              kind:"print", msg:"Добре" },
+  { id:"c3",  text:"elif score >= 50:",               kind:"elif", test:s => s >= 50 },
+  { id:"p3",  text:"    print('Задовільно')",         kind:"print", msg:"Задовільно" },
+  { id:"c4",  text:"else:",                           kind:"else", test:() => true },
+  { id:"p4",  text:"    print('Потрібно повторити')", kind:"print", msg:"Потрібно повторити" },
+  // зайві рядки
+  { id:"x1",  text:"elif score > 90:",                kind:"elif", test:s => s > 90 },
+  { id:"x2",  text:"else score < 50:",                kind:"error",
+    why:"після <code>else</code> умову не пишуть — це синтаксична помилка" }
+];
+const TESTS = [95, 90, 89, 75, 70, 55, 50, 30, 0, 100, -5, 120];
+const expected = s => s < 0 || s > 100 ? "Некоректний результат"
+  : s >= 90 ? "Відмінно" : s >= 70 ? "Добре" : s >= 50 ? "Задовільно" : "Потрібно повторити";
+
+let program = [];    // id рядків у програмі
+let pool = [];       // id доступних рядків
+let attempts = 0;
+let practicalPassed = false;
+const byId = id => LINES.find(l => l.id === id);
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function resetPuzzle() {
+  if (practicalPassed) return;
+  program = [];
+  pool = shuffle(LINES.map(l => l.id));
+  $("codeFeedback").className = "hidden";
+  renderPuzzle();
+}
+
+function lineButton(id, onTap, bad) {
+  const b = document.createElement("button");
+  b.className = "line" + (bad ? " bad" : "");
+  const c = document.createElement("code");
+  c.textContent = byId(id).text;
+  b.appendChild(c);
+  b.onclick = onTap;
+  b.disabled = practicalPassed;
+  return b;
+}
+
+function renderPuzzle(badIndex) {
+  const prog = $("program"), pl = $("pool");
+  prog.innerHTML = ""; pl.innerHTML = "";
+  if (!program.length) prog.innerHTML = '<div class="empty">Натисни рядок нижче, щоб додати його сюди</div>';
+  program.forEach((id, i) => prog.appendChild(lineButton(id, () => {
+    program.splice(i, 1); pool.push(id); renderPuzzle();
+  }, i === badIndex)));
+  if (!pool.length) pl.innerHTML = '<div class="empty">Усі рядки використано</div>';
+  pool.forEach((id, i) => pl.appendChild(lineButton(id, () => {
+    pool.splice(i, 1); program.push(id); renderPuzzle();
+  })));
+}
+
+// Перевіряє структуру; повертає {error, at} або {blocks}
+function parseProgram() {
+  const L = program.map(byId);
+  if (!L.length) return { error:"програма порожня — додай рядки" };
+  if (L[0].kind !== "input")
+    return { error:"спочатку потрібно зчитати число: <code>score = int(input())</code>", at:0 };
+  const blocks = [];
+  for (let i = 1; i < L.length; i += 2) {
+    const head = L[i], body = L[i + 1];
+    if (head.kind === "error") return { error:"рядок <code>" + esc(head.text) + "</code>: " + head.why, at:i };
+    if (head.kind === "input") return { error:"число вже зчитано — повторне введення не потрібне", at:i };
+    if (head.kind === "print")
+      return { error:"рядок <code>" + esc(head.text.trim()) + "</code> має відступ, але над ним немає <code>if</code>, <code>elif</code> чи <code>else</code>", at:i };
+    if (i === 1 && head.kind !== "if")
+      return { error:"розгалуження має починатися з <code>if</code>", at:i };
+    if (i > 1 && head.kind === "if")
+      return { error:"другий <code>if</code> почне нове розгалуження — тут потрібен <code>elif</code>", at:i };
+    if (blocks.length && blocks[blocks.length - 1].kind === "else")
+      return { error:"після <code>else</code> не може бути інших гілок — <code>else</code> завжди останній", at:i };
+    if (!body || body.kind !== "print")
+      return { error:"після <code>" + esc(head.text) + "</code> має йти рядок з відступом (<code>print</code>)", at:body ? i + 1 : i };
+    blocks.push({ kind:head.kind, test:head.test, msg:body.msg });
+  }
+  if (!blocks.length) return { error:"у програмі немає жодної умови", at:0 };
+  return { blocks };
+}
+
+function run(blocks, s) {
+  for (const b of blocks) if (b.test(s)) return b.msg;
+  return "(нічого не виведено)";
+}
+
+function esc(s) { return s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c])); }
+
+function checkProgram() {
+  if (practicalPassed) return;
+  attempts++;
+  const fb = $("codeFeedback");
+  const res = parseProgram();
+
+  if (res.error) {
+    renderPuzzle(res.at);
+    fb.className = "feedback bad";
+    fb.innerHTML = "❌ <b>Програма не запуститься.</b><br>Перевір: " + res.error + ".";
+    fb.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    return;
+  }
+
+  let ok = 0, rows = "";
+  TESTS.forEach(s => {
+    const got = run(res.blocks, s), exp = expected(s), pass = got === exp;
+    if (pass) ok++;
+    rows += '<tr class="' + (pass ? "" : "fail") + '"><td>' + s + "</td><td>" + esc(exp) +
+            "</td><td>" + (pass ? "✅ " : "❌ ") + esc(got) + "</td></tr>";
+  });
+  const table = '<table class="tests"><tr><th>score</th><th>Очікувано</th><th>Твоя програма</th></tr>' + rows + "</table>";
+
+  if (ok === TESTS.length) {
+    const pts = attempts === 1 ? 6 : attempts === 2 ? 4 : 2;
+    score += pts;
+    practicalPassed = true;
+    renderPuzzle();
+    $("checkButton").disabled = true;
+    fb.className = "feedback good";
+    fb.innerHTML = "🎉 <b>Програма працює правильно на всіх " + TESTS.length + " тестах! +" + pts +
+      " балів.</b>" + table;
+    $("finishButton").classList.remove("hidden");
+  } else {
+    renderPuzzle();
+    fb.className = "feedback bad";
+    fb.innerHTML = "⚠️ <b>Програма запускається, але пройдено " + ok + " з " + TESTS.length +
+      " тестів.</b><br>Подивись, для яких значень відповідь неправильна, і зміни порядок рядків." + table;
+  }
+  fb.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+function showResult() {
+  $("finalTask").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  $("finalScore").textContent = score + " / 30 балів";
+
+  let rank, text;
+  if (score >= 27) {
+    rank = "Архітектор Python";
+    text = "Ти чудово володієш умовними конструкціями!";
+  } else if (score >= 23) {
+    rank = "Майстер розгалужень";
+    text = "Ти впевнено використовуєш умовні оператори.";
+  } else if (score >= 18) {
+    rank = "Досвідчений програміст";
+    text = "Гарний результат! Продовжуй практикуватися.";
+  } else if (score >= 12) {
+    rank = "Початківець Python";
+    text = "Ти вже знаєш основи. Ще трохи практики — і все вийде!";
+  } else {
+    rank = "Потрібно більше тренувань";
+    text = "Повтори матеріал і спробуй пройти місію ще раз.";
+  }
+  $("rank").textContent = rank;
+  $("rankText").textContent = text;
+  scrollToEl($("result"));
+}
+</script>
+</body>
+</html>
