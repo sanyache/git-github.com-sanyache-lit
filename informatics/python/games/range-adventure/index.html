@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10182f">
+  <meta name="description" content="Інтерактивна пригода для вивчення функції range() у Python.">
+  <title>Місія RANGE() — пригода з Python</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="На початок гри">
+        <span class="brand-mark">R</span>
+        <span><strong>МІСІЯ RANGE()</strong><small>Пригода у світі Python</small></span>
+      </a>
+      <div class="top-stats">
+        <div class="stat"><span class="stat-icon">⭐</span><strong id="score">0</strong><small>бали</small></div>
+        <div class="stat"><span class="stat-icon">🏅</span><strong id="stars">0/5</strong><small>локацій</small></div>
+      </div>
+    </header>
+
+    <main>
+      <section id="intro-screen" class="screen intro-screen active">
+        <div class="intro-copy">
+          <div class="eyebrow">НАВЧАЛЬНА ПРИГОДА · 7 КЛАС</div>
+          <h1>Врятуй цифровий<br><span>світ RANGE()</span></h1>
+          <p class="lead">Баг-Х захопив головний комп’ютер і вимкнув усі числові маршрути. Допоможи роботу Ранго пройти п’ять локацій, відновити код і повернути світ до роботи!</p>
+          <ul class="feature-list">
+            <li><span>🧩</span> Логічні загадки та завдання з Python</li>
+            <li><span>🗺️</span> П’ять локацій, які відкриваються поступово</li>
+            <li><span>📱</span> Зручно на телефоні, планшеті й комп’ютері</li>
+          </ul>
+          <button class="primary-btn large" id="start-btn">Почати пригоду <span>➜</span></button>
+          <p class="microcopy">Працює у браузері. Інтернет потрібен лише для першого відкриття сторінки.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <div class="planet planet-one">01</div><div class="planet planet-two">10</div>
+          <div class="robot hero-robot"><div class="antenna"></div><div class="robot-face"><i></i><i></i><b></b></div><div class="robot-body">R</div></div>
+          <div class="floating-code code-one">range(5)</div><div class="floating-code code-two">step = 2</div>
+          <div class="spark spark-one">✦</div><div class="spark spark-two">✧</div>
+        </div>
+      </section>
+
+      <section id="map-screen" class="screen map-screen">
+        <div class="section-heading">
+          <div><div class="eyebrow">КАРТА ПРИГОДИ</div><h2>Обери наступну локацію</h2><p>Пройди випробування по черзі, щоб відновити головний комп’ютер.</p></div>
+          <div class="map-progress"><span id="progress-label">0 із 5 місій</span><div class="progress-track"><i id="progress-bar"></i></div></div>
+        </div>
+        <div class="map-layout">
+          <div class="map-path" aria-label="Карта п'яти локацій">
+            <div class="path-line"></div>
+            <button class="location-node current" data-level="0"><span class="node-emoji">🗝️</span><b>1</b><small>Три ключі</small><em>Відкрита</em></button>
+            <button class="location-node locked" data-level="1"><span class="node-emoji">🌉</span><b>2</b><small>Міст кроків</small><em>Заблокована</em></button>
+            <button class="location-node locked" data-level="2"><span class="node-emoji">🛠️</span><b>3</b><small>Лабораторія</small><em>Заблокована</em></button>
+            <button class="location-node locked" data-level="3"><span class="node-emoji">🤖</span><b>4</b><small>Робот-кур’єр</small><em>Заблокована</em></button>
+            <button class="location-node locked" data-level="4"><span class="node-emoji">💎</span><b>5</b><small>Ядро системи</small><em>Заблокована</em></button>
+          </div>
+          <aside class="map-side">
+            <div class="rango-card"><div class="robot mini-robot"><div class="antenna"></div><div class="robot-face"><i></i><i></i><b></b></div><div class="robot-body">R</div></div><div><strong>Ранго</strong><p id="rango-message">Привіт! Я проведу тебе всіма локаціями. Готовий?</p></div></div>
+            <div class="mission-card"><span class="card-label">ТВОЯ МЕТА</span><h3>Відновити 5 модулів</h3><p>За кожну пройдену локацію отримуй зірку та бали. Якщо помилишся — Ранго пояснить правило.</p><div class="module-icons" id="module-icons"><span>○</span><span>○</span><span>○</span><span>○</span><span>○</span></div></div>
+            <button class="secondary-btn" id="continue-btn">До доступної місії <span>➜</span></button>
+          </aside>
+        </div>
+      </section>
+
+      <section id="game-screen" class="screen game-screen">
+        <div class="game-topline">
+          <button class="back-btn" id="back-map">← Карта</button>
+          <div class="mission-progress"><span id="mission-number">МІСІЯ 1 / 5</span><div class="progress-track"><i id="mission-progress-bar"></i></div></div>
+          <div class="game-score">⭐ <strong id="game-score">0</strong></div>
+        </div>
+        <div class="mission-banner">
+          <div class="mission-art" id="mission-art">🗝️</div>
+          <div><div class="eyebrow" id="mission-kicker">ЛОКАЦІЯ 1</div><h2 id="mission-title">Три ключі від лабораторії</h2><p id="mission-description">Навчись читати три форми range().</p></div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-head"><span class="challenge-tag" id="challenge-counter">ЗАВДАННЯ 1 / 3</span><span class="challenge-kind">ПЕРЕВІР СЕБЕ</span></div>
+          <h3 id="question-text"></h3>
+          <div id="question-extra"></div>
+          <div id="answer-area" class="answer-area"></div>
+          <div id="feedback" class="feedback" aria-live="polite"></div>
+          <div class="challenge-actions">
+            <button class="hint-btn" id="hint-btn">💡 Підказка</button>
+            <button class="primary-btn" id="check-btn">Перевірити <span>➜</span></button>
+            <button class="primary-btn hidden" id="next-btn">Далі <span>➜</span></button>
+          </div>
+        </div>
+        <div class="rango-tip"><span class="tip-avatar">🤖</span><p id="tip-text">Пам’ятай: кінцеве значення stop не входить до послідовності.</p></div>
+      </section>
+
+      <section id="complete-screen" class="screen complete-screen">
+        <div class="confetti" aria-hidden="true">✦　✧　✦　✧　✦</div>
+        <div class="complete-icon" id="complete-icon">🌟</div>
+        <div class="eyebrow">ЛОКАЦІЮ ПРОЙДЕНО</div>
+        <h2 id="complete-title">Чудова робота!</h2>
+        <p id="complete-text">Ти відновив один із модулів системи.</p>
+        <div class="reward-panel"><div><strong id="earned-points">+30</strong><small>балів отримано</small></div><div><strong id="earned-stars">⭐</strong><small>нова зірка</small></div></div>
+        <button class="primary-btn large" id="complete-continue">Продовжити <span>➜</span></button>
+        <button class="text-btn" id="complete-map">Повернутися на карту</button>
+      </section>
+
+      <section id="final-screen" class="screen final-screen">
+        <div class="final-glow"></div>
+        <div class="complete-icon">🏆</div>
+        <div class="eyebrow">МІСІЮ ВИКОНАНО</div>
+        <h1>Ти — Майстер<br><span>циклів Python!</span></h1>
+        <p>Баг-Х переможений, а цифровий світ знову працює. Тепер ти вмієш керувати послідовностями за допомогою <code>range()</code>.</p>
+        <div class="final-stats"><div><strong id="final-score">0</strong><small>набрано балів</small></div><div><strong>5/5</strong><small>місій пройдено</small></div></div>
+        <div class="certificate"><div class="certificate-star">✦</div><small>СЕРТИФІКАТ ДОСЯГНЕННЯ</small><h2>МАЙСТЕР RANGE()</h2><p>Підтверджує, що учень успішно пройшов усі випробування та опанував параметри start, stop і step.</p><strong>PYTHON ADVENTURE · 7 КЛАС</strong></div>
+        <div class="final-actions"><button class="primary-btn large" id="restart-btn">Грати ще раз ↻</button><button class="secondary-btn" id="print-btn">🖨️ Друкувати сертифікат</button></div>
+      </section>
+    </main>
+    <footer><span>МІСІЯ RANGE() <i>·</i> Навчальна гра з Python</span><button id="sound-toggle" aria-pressed="false">🔊 Звук: вимкнено</button></footer>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

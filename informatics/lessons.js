@@ -26,6 +26,13 @@ window.LESSONS = {
       title: "Python CodeQuest: розгалуження",
       desc: "Гра: 6 рівнів про if, if-else, if-elif-else та and, or, not і фінальна місія «Збери програму».",
       file: "python/games/if-else-game.html"
+    },
+    {
+      id: "py-range-adventure",
+      type: "game",
+      title: "Місія RANGE()",
+      desc: "Пригода з 5 локацій: функція range() — параметри start, stop і step.",
+      file: "python/games/range-adventure/index.html"
     }
     // Приклад:
     // { id: "py-bubble", type: "visual", title: "Сортування бульбашкою", desc: "Покрокова робота алгоритму", file: "python/visual/bubble-sort.html" },
