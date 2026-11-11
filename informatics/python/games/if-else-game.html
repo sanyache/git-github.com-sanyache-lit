@@ -186,8 +186,7 @@ pre {
     <li>інші значення — «Некоректний результат»</li>
   </ul>
   <p class="note">
-    Натискай рядки внизу, щоб додати їх у програму. Натисни рядок у програмі, щоб повернути його назад.
-    Обережно: <b>два рядки зайві</b> — вони містять помилки.
+    Натискай рядки внизу в правильному порядку, щоб додати їх у програму. Натисни рядок у програмі, щоб повернути його назад.
     Бали: з 1-ї спроби — 6, з 2-ї — 4, далі — 2.
   </p>
 
@@ -415,23 +414,19 @@ function nextQuestion() {
 /* ===== Фінальна місія: збери програму з рядків ===== */
 // kind: input | if | elif | else | print | error
 const LINES = [
-  { id:"in",  text:"score = int(input())",            kind:"input" },
-  { id:"c0",  text:"if score < 0 or score > 100:",    kind:"if",   test:s => s < 0 || s > 100 },
-  { id:"p0",  text:"    print('Некоректний результат')", kind:"print", msg:"Некоректний результат" },
-  { id:"c1",  text:"elif score >= 90:",               kind:"elif", test:s => s >= 90 },
-  { id:"p1",  text:"    print('Відмінно')",            kind:"print", msg:"Відмінно" },
-  { id:"c2",  text:"elif score >= 70:",               kind:"elif", test:s => s >= 70 },
-  { id:"p2",  text:"    print('Добре')",              kind:"print", msg:"Добре" },
-  { id:"c3",  text:"elif score >= 50:",               kind:"elif", test:s => s >= 50 },
-  { id:"p3",  text:"    print('Задовільно')",         kind:"print", msg:"Задовільно" },
-  { id:"c4",  text:"else:",                           kind:"else", test:() => true },
-  { id:"p4",  text:"    print('Потрібно повторити')", kind:"print", msg:"Потрібно повторити" },
-  // зайві рядки
-  { id:"x1",  text:"elif score > 90:",                kind:"elif", test:s => s > 90 },
-  { id:"x2",  text:"else score < 50:",                kind:"error",
-    why:"після <code>else</code> умову не пишуть — це синтаксична помилка" }
+  { id:"in",  text:'score = int(input())',               kind:"input" },
+  { id:"c1",  text:'if 90 <= score <= 100:',             kind:"if",   test:s => 90 <= s && s <= 100 },
+  { id:"p1",  text:'    print("Відмінно")',              kind:"print", msg:"Відмінно" },
+  { id:"c2",  text:'elif 70 <= score < 90:',             kind:"elif", test:s => 70 <= s && s < 90 },
+  { id:"p2",  text:'    print("Добре")',                 kind:"print", msg:"Добре" },
+  { id:"c3",  text:'elif 50 <= score < 70:',             kind:"elif", test:s => 50 <= s && s < 70 },
+  { id:"p3",  text:'    print("Задовільно")',            kind:"print", msg:"Задовільно" },
+  { id:"c4",  text:'elif 0 <= score < 50:',              kind:"elif", test:s => 0 <= s && s < 50 },
+  { id:"p4",  text:'    print("Потрібно повторити")',    kind:"print", msg:"Потрібно повторити" },
+  { id:"c0",  text:'else:',                              kind:"else", test:() => true },
+  { id:"p0",  text:'    print("Некоректний результат")', kind:"print", msg:"Некоректний результат" }
 ];
-const TESTS = [95, 90, 89, 75, 70, 55, 50, 30, 0, 100, -5, 120];
+const TESTS = [100, 95, 90, 89, 75, 70, 69, 50, 49, 0, -5, 120];
 const expected = s => s < 0 || s > 100 ? "Некоректний результат"
   : s >= 90 ? "Відмінно" : s >= 70 ? "Добре" : s >= 50 ? "Задовільно" : "Потрібно повторити";
 
