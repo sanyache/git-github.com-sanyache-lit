@@ -52,6 +52,13 @@ window.LESSONS = {
       title: "Коник: найдешевший шлях",
       desc: "Динамічне програмування: мінімальна вартість шляху та відновлення відповіді.",
       file: "cpp/visual/konyk-shliakh.html"
+    },
+    {
+      id: "cpp-hanoi",
+      type: "visual",
+      title: "Ханойська вежа",
+      desc: "Рекурсія: стержні, стек викликів, комірки пам'яті та дерево рекурсивних викликів.",
+      file: "cpp/visual/hanoi-tower.html"
     }
   ]
 };
