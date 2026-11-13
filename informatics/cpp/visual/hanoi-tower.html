@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ханойська вежа — рекурсія на C++</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --panel:#fffdf8; --ink:#1d1b16; --muted:#6d685c; --line:#e3ded2;
+    --start:#c2410c; --from:#0f766e; --tmp:#6d28d9; --hl:#fff1c2; --code-bg:#1c1b19; --code-ink:#e9e5da;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#141311; --panel:#1d1c19; --ink:#efebe2; --muted:#a39d8f; --line:#34312b; --hl:#3a3220;
+      --start:#fb923c; --from:#2dd4bf; --tmp:#a78bfa; --code-bg:#0f0e0d; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+  .wrap{max-width:1120px;margin:0 auto;padding:14px 12px 150px}
+  h1{font-size:1.25rem;margin:4px 0 2px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 12px;font-size:.92rem}
+  .grid{display:grid;gap:12px}
+  @media (min-width:900px){ .wrap>.grid{grid-template-columns:1.15fr 1fr} .left{grid-column:1} .right{grid-column:2;grid-row:1 / span 2} }
+  .grid>*,.card{min-width:0}
+  html,body{overflow-x:hidden}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .card h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
+  svg{display:block;width:100%;height:auto;touch-action:manipulation}
+  .msg{min-height:2.9em;margin:8px 2px 2px;font-size:.95rem}
+  .msg b{font-variant-numeric:tabular-nums}
+  .stats{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
+  .stats span b{color:var(--ink)}
+
+  .controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--panel);border-top:1px solid var(--line);
+    box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:4px 12px 8px}
+  .bar>*{max-width:1096px;margin-left:auto;margin-right:auto}
+  button,select,input{touch-action:manipulation}
+  #stack{height:290px;overflow:auto}
+  .msg{height:4.4em;overflow:hidden}
+  button,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;
+    min-height:44px;min-width:44px;padding:0 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:active{transform:scale(.97)}
+  button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);min-width:64px;font-weight:600}
+  button:disabled{opacity:.4}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%}
+  label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+  input[type=range]{flex:1;min-width:120px;height:32px;accent-color:var(--from)}
+  .scrub{display:block;width:100%;margin-top:2px}
+  .controls .row{flex-wrap:nowrap}
+  .controls .row button{flex:1;padding:0 6px}
+  #bMove{flex:1.6}
+
+  .mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .cell{border:2px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center;transition:background .25s}
+  .cell .nm{font:600 .8rem ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted)}
+  .cell .val{font:700 1.7rem/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin-top:2px;font-variant-numeric:tabular-nums}
+  .cell .hint{font-size:.7rem;color:var(--muted)}
+  .cell.start{border-color:var(--start)} .cell.start .val{color:var(--start)}
+  .cell.from{border-color:var(--from)} .cell.from .val{color:var(--from)}
+  .cell.tmp{border-color:var(--tmp)} .cell.tmp .val{color:var(--tmp)}
+  .cell.flash{animation:flash .7s ease}
+  @keyframes flash{0%{background:var(--hl);transform:scale(1.06)}100%{background:transparent;transform:scale(1)}}
+
+  pre.code{margin:0;background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:8px 0;overflow:auto;
+    font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-height:none}
+  .ln{display:block;padding:0 10px 0 0;white-space:pre;border-left:3px solid transparent}
+  .ln i{display:inline-block;width:2.4em;text-align:right;margin-right:12px;color:#6f6a5e;font-style:normal;user-select:none}
+  .ln.cur{background:rgba(250,204,21,.18);border-left-color:#facc15}
+  .kw{color:#f0a868}.ty{color:#7dd3fc}.fn{color:#fde68a}.nu{color:#c4b5fd}.st{color:#86efac}.cm{color:#8a857a}.pp{color:#f9a8d4}
+  .v-s{color:#fb923c;font-weight:700}.v-f{color:#2dd4bf;font-weight:700}.v-t{color:#a78bfa;font-weight:700}
+
+  .treebox{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+  #tree{display:block;margin:0 auto;width:auto;height:auto}
+  #tree .nd{cursor:pointer}
+  #tree .nd circle{fill:var(--panel);stroke:var(--line);stroke-width:2;transition:fill .2s,stroke .2s}
+  #tree .nd text{font:700 11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:var(--muted);text-anchor:middle}
+  #tree .nd .lb,#tree .nd .no{paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round}
+  #tree .nd .lb{font-weight:600;font-size:10px}
+  #tree .nd .no{font-size:9.5px;opacity:0}
+  #tree .nd.active circle{fill:var(--hl);stroke:var(--start);stroke-width:2.5}
+  #tree .nd.active text{fill:var(--ink)}
+  #tree .nd.cur circle{fill:#facc15;stroke:var(--ink);stroke-width:3}
+  #tree .nd.cur text{fill:var(--ink)}
+  #tree .nd.cur .n{fill:#1d1b16}
+  #tree .nd.done circle{fill:var(--from);stroke:var(--from)}
+  #tree .nd.done .n{fill:#fff}
+  #tree .nd.moved .lb{fill:var(--from)}
+  #tree .nd.moved .no{opacity:1;fill:var(--from)}
+  #tree .eg{stroke:var(--line);stroke-width:1.6;fill:none}
+  #tree .eg.on{stroke:var(--start);stroke-width:2.6}
+  #tree .eg.done{stroke:var(--from);opacity:.55}
+  table.stack{width:100%;border-collapse:collapse;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  table.stack th{font:600 .72rem system-ui,sans-serif;color:var(--muted);text-align:center;padding:4px;border-bottom:1px solid var(--line)}
+  table.stack td{text-align:center;padding:5px 4px;border-bottom:1px solid var(--line)}
+  table.stack tr.top td{background:var(--hl);font-weight:700}
+  table.stack td.c-s{color:var(--start)} table.stack td.c-f{color:var(--from)} table.stack td.c-t{color:var(--tmp)}
+  .empty{color:var(--muted);font-size:.85rem;padding:6px 2px}
+  .console{background:var(--code-bg);color:#b5f5c8;border-radius:10px;padding:8px 10px;
+    font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;height:9.5em;overflow:auto;white-space:pre}
+  .note{font-size:.82rem;color:var(--muted);margin-top:8px}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem;margin-top:6px}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Ханойська вежа: рекурсія на C++</h1>
+  <p class="sub">Переносимо піраміду зі стержня <b>start</b> на стержень <b>from</b>, використовуючи проміжний <b>tmp</b>. Крокуйте по коду й дивіться, як змінюються параметри кожного рекурсивного виклику.</p>
+
+  <div class="grid">
+    <div class="left grid">
+      <section class="card">
+        <h2>Стержні</h2>
+        <svg id="board" viewBox="0 0 600 270" aria-label="Стержні з дисками"></svg>
+        <div class="msg" id="msg"></div>
+        <div class="stats">
+          <span>Крок <b id="stepNo">0</b> / <b id="stepMax">0</b></span>
+          <span>Переміщень <b id="moves">0</b> / <b id="movesMax">0</b></span>
+          <span>Глибина рекурсії <b id="depth">0</b></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Комірки пам'яті поточного виклику</h2>
+        <div class="mem">
+          <div class="cell" id="c-n"><div class="nm">n</div><div class="val">–</div><div class="hint">дисків</div></div>
+          <div class="cell start" id="c-start"><div class="nm">start</div><div class="val">–</div><div class="hint">звідки</div></div>
+          <div class="cell from" id="c-from"><div class="nm">from</div><div class="val">–</div><div class="hint">куди</div></div>
+          <div class="cell tmp" id="c-tmp"><div class="nm">tmp</div><div class="val">–</div><div class="hint">проміжний</div></div>
+        </div>
+        <p class="note">Кожен виклик <code>hanoi</code> отримує власні копії параметрів у новому кадрі стеку. У першому рекурсивному виклику міняються місцями <b>from</b> і <b>tmp</b>, у другому — <b>start</b> і <b>tmp</b>.</p>
+      </section>
+      <section class="card">
+        <h2>Граф: дерево рекурсивних викликів</h2>
+        <div class="treebox" id="treebox"><svg id="tree"></svg></div>
+        <div class="legend">
+          <span style="--c:#facc15">поточний виклик</span>
+          <span style="--c:var(--start)">у стеку</span>
+          <span style="--c:var(--from)">завершений</span>
+          <span style="--c:var(--muted)">ще не викликаний</span>
+        </div>
+        <p class="note">Вершина — виклик <code>hanoi(n, start, from, tmp)</code>: у кружечку <b>n</b>, під ним переміщення <b>start→from</b>, яке цей виклик робить у рядку 6 або 10, і його номер <b>#k</b>. Ліве ребро — виклик з рядка 9, праве — з рядка 11. Порядок переміщень — це симетричний обхід дерева (ліве піддерево → вершина → праве піддерево), тому номери ростуть зліва направо. Торкніться вершини, щоб перейти до цього виклику.</p>
+      </section>
+    </div>
+
+    <div class="right grid">
+      <section class="card">
+        <h2>Код C++</h2>
+        <pre class="code" id="code"></pre>
+      </section>
+      <section class="card">
+        <h2>Стек викликів (верхній — активний)</h2>
+        <div id="stack"></div>
+      </section>
+      <section class="card">
+        <h2>Вивід програми (cout)</h2>
+        <div class="console" id="console"></div>
+      </section>
+    </div>
+  </div>
+  <div class="bar">
+        <input class="scrub" id="scrub" type="range" min="0" max="0" value="0" aria-label="Перемотування">
+        <div class="controls">
+          <div class="row">
+            <button id="bReset" title="На початок" aria-label="На початок">⏮</button>
+            <button id="bBack" title="Крок назад" aria-label="Крок назад">◀</button>
+            <button id="bPlay" class="primary" aria-label="Відтворити">▶</button>
+            <button id="bStep" title="Крок вперед" aria-label="Крок вперед">▶︎|</button>
+            <button id="bMove" title="До наступного переміщення диска">Хід »</button>
+            <button id="bEnd" title="В кінець" aria-label="В кінець">⏭</button>
+          </div>
+          <div class="row">
+            <label for="nSel">n =</label>
+            <select id="nSel" aria-label="Кількість дисків"></select>
+            <label for="speed" style="flex:1">Швидкість <input id="speed" type="range" min="1" max="9" value="4"></label>
+          </div>
+        </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- Код C++ ----------
+  const SRC = [
+    '#include <iostream>',
+    'using namespace std;',
+    '',
+    'void hanoi(int n, int start, int from, int tmp) {',
+    '    if (n == 1) {',
+    '        cout << start << " -> " << from << endl;',
+    '        return;',
+    '    }',
+    '    hanoi(n - 1, start, tmp, from);   // n-1 дисків: start → tmp',
+    '    cout << start << " -> " << from << endl; // найбільший диск',
+    '    hanoi(n - 1, tmp, from, start);   // n-1 дисків: tmp → from',
+    '}',
+    '',
+    'int main() {',
+    '    int n = 6;',
+    '    hanoi(n, 1, 3, 2);',
+    '    return 0;',
+    '}'
+  ];
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function highlight(line){
+    let cm = '';
+    const ci = line.indexOf('//');
+    if (ci >= 0){ cm = line.slice(ci); line = line.slice(0,ci); }
+    let h = esc(line);
+    if (/^#include/.test(line)) return '<span class="pp">'+h+'</span>';
+    h = h.replace(/(&quot;|")([^"]*)(")/g,'<span class="st">"$2"</span>');
+    h = h.replace(/\b(using|namespace|if|return)\b/g,'<span class="kw">$1</span>')
+         .replace(/\b(void|int)\b/g,'<span class="ty">$1</span>')
+         .replace(/\b(hanoi|main)\b(?=\()/g,'<span class="fn">$1</span>')
+         .replace(/\b(start)\b/g,'<span class="v-s">$1</span>')
+         .replace(/\b(from)\b/g,'<span class="v-f">$1</span>')
+         .replace(/\b(tmp)\b/g,'<span class="v-t">$1</span>')
+         .replace(/(^|[^\w#])(\d+)\b/g,'$1<span class="nu">$2</span>');
+    return h + (cm ? '<span class="cm">'+esc(cm)+'</span>' : '');
+  }
+  const codeEl = document.getElementById('code');
+  function renderCode(n){
+    codeEl.innerHTML = SRC.map((l,i)=>{
+      const t = i===14 ? '    int n = '+n+';' : l;
+      return '<span class="ln" data-l="'+(i+1)+'"><i>'+(i+1)+'</i>'+highlight(t)+'</span>';
+    }).join('');
+  }
+
+  // ---------- Трасування рекурсії ----------
+  let snaps = [], outAll = [], nodes = [], N = 6, idx = 0;
+  function build(n){
+    snaps = []; outAll = []; nodes = [];
+    const rods = [[],[],[]];
+    for (let d=n; d>=1; d--) rods[0].push(d);
+    const stack = []; let moves = 0;
+    const snap = (line,msg,extra) => snaps.push(Object.assign({
+      line, msg, stack: stack.map(f=>Object.assign({},f)),
+      rods: rods.map(r=>r.slice()), moves, out: outAll.length,
+      node: stack.length ? stack[stack.length-1].id : -1
+    }, extra||{}));
+    const mv = (s,f) => { const d = rods[s-1].pop(); rods[f-1].push(d); moves++; outAll.push(s+' -> '+f); return d; };
+
+    snap(15, `<b>main</b>: оголошуємо n = ${n}.`);
+    snap(16, `<b>main</b> викликає hanoi(${n}, 1, 3, 2): перенести ${n} диск(ів) з 1 на 3 через 2.`);
+    (function h(n,s,f,t){
+      const parent = stack.length ? stack[stack.length-1].id : -1;
+      const node = {id:nodes.length, n, s, f, t, depth:stack.length, parent, kids:[], enter:snaps.length};
+      nodes.push(node); if (parent>=0) nodes[parent].kids.push(node.id);
+      stack.push({id:node.id, n, start:s, from:f, tmp:t, line:4});
+      const L = (l,m,e) => { stack[stack.length-1].line = l; snap(l,m,e); };
+      L(4, `Вхід у <b>hanoi(${n}, ${s}, ${f}, ${t})</b> — новий кадр стеку, глибина ${stack.length}.`);
+      L(5, `Перевірка базового випадку: n == 1? <b>${n===1?'так':'ні'}</b> (n = ${n}).`);
+      if (n === 1){
+        mv(s,f); node.moveNo = moves; node.moveSnap = snaps.length;
+        L(6, `Базовий випадок: переносимо диск <b>1</b> зі стержня ${s} на ${f}.`, {moved:{d:1,from:s,to:f}});
+        L(7, `return — кадр hanoi(1, ${s}, ${f}, ${t}) знімається зі стеку.`);
+        node.exit = snaps.length-1; stack.pop(); return;
+      }
+      L(9, `Спершу переносимо ${n-1} верхніх диск(ів) на проміжний: <b>hanoi(${n-1}, ${s}, ${t}, ${f})</b> — from і tmp міняються місцями.`);
+      h(n-1, s, t, f);
+      const d = mv(s,f); node.moveNo = moves; node.moveSnap = snaps.length;
+      L(10, `Повернулися в hanoi(${n}, ${s}, ${f}, ${t}). Найбільший диск <b>${d}</b>: ${s} → ${f}.`, {moved:{d,from:s,to:f}});
+      L(11, `Тепер ${n-1} диск(ів) з проміжного на ціль: <b>hanoi(${n-1}, ${t}, ${f}, ${s})</b> — start і tmp міняються місцями.`);
+      h(n-1, t, f, s);
+      L(12, `Кінець hanoi(${n}, ${s}, ${f}, ${t}) — повернення до викликача.`);
+      node.exit = snaps.length-1; stack.pop();
+    })(n,1,3,2);
+    snap(17, `Готово! Виконано <b>${moves}</b> переміщень = 2<sup>${n}</sup> − 1.`);
+  }
+
+  // ---------- Малювання ----------
+  const svg = document.getElementById('board');
+  const RX = [100,300,500], BASE = 232, ROD_TOP = 40;
+  const roleColor = {start:'var(--start)', from:'var(--from)', tmp:'var(--tmp)'};
+  function draw(sn){
+    const top = sn.stack[sn.stack.length-1];
+    const roles = {};
+    if (top){ roles[top.start]='start'; roles[top.from]='from'; roles[top.tmp]='tmp'; }
+    else { roles[1]='start'; roles[3]='from'; roles[2]='tmp'; }
+    const maxW = 186, minW = 44;
+    const dh = Math.min(26, (BASE-ROD_TOP-14)/N);
+    let s = `<rect x="10" y="${BASE}" width="580" height="12" rx="6" fill="var(--muted)" opacity=".45"/>`;
+    for (let r=0;r<3;r++){
+      const role = roles[r+1], col = roleColor[role];
+      s += `<rect x="${RX[r]-5}" y="${ROD_TOP}" width="10" height="${BASE-ROD_TOP}" rx="5" fill="var(--muted)" opacity=".55"/>`;
+      s += `<text x="${RX[r]}" y="${BASE+30}" text-anchor="middle" font-size="17" font-weight="700" fill="var(--ink)" font-family="ui-monospace,monospace">${r+1}</text>`;
+      s += `<rect x="${RX[r]-34}" y="${ROD_TOP-30}" width="68" height="22" rx="11" fill="${col}"/>`;
+      s += `<text x="${RX[r]}" y="${ROD_TOP-14}" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="ui-monospace,monospace">${role}</text>`;
+      sn.rods[r].forEach((d,k)=>{
+        const w = N===1 ? maxW : minW + (maxW-minW)*(d-1)/(N-1);
+        const y = BASE - (k+1)*dh;
+        const hue = (d*47+15)%360;
+        const isMoved = sn.moved && sn.moved.d===d && k===sn.rods[r].length-1;
+        s += `<rect x="${RX[r]-w/2}" y="${y+1}" width="${w}" height="${dh-2}" rx="${Math.min(8,dh/2)}" fill="hsl(${hue} 70% 55%)" ${isMoved?'stroke="var(--ink)" stroke-width="3"':''}/>`;
+        if (dh>=14) s += `<text x="${RX[r]}" y="${y+dh/2+4.5}" text-anchor="middle" font-size="${Math.min(14,dh-4)}" font-weight="700" fill="#1d1b16" font-family="ui-monospace,monospace">${d}</text>`;
+      });
+    }
+    if (sn.moved){
+      const a = RX[sn.moved.from-1], b = RX[sn.moved.to-1], y = ROD_TOP+6;
+      const midY = y - 2;
+      s += `<path d="M${a} ${y+14} Q${(a+b)/2} ${midY-26} ${b} ${y+14}" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#ah)" opacity=".7"/>`;
+    }
+    s = `<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--ink)"/></marker></defs>` + s;
+    svg.innerHTML = s;
+  }
+
+  // ---------- Граф викликів ----------
+  const treeSvg = document.getElementById('tree'), treeBox = document.getElementById('treebox');
+  let tX = [], tY = [], nodeEls = [], edgeEls = [];
+  function drawTree(){
+    // симетричний (in-order) обхід дає x-координату = порядковий номер переміщення
+    let k = 0; const ord = [];
+    (function io(id){ const nd = nodes[id]; if (nd.kids[0]!==undefined) io(nd.kids[0]); ord[id]=k++; if (nd.kids[1]!==undefined) io(nd.kids[1]); })(0);
+    const cnt = nodes.length, dx = Math.max(24, Math.min(64, Math.floor(340/cnt))), dy = 56, pad = 24;
+    const W = pad*2 + (cnt-1)*dx, H = 30 + (N-1)*dy + 44;
+    tX = nodes.map(nd => pad + ord[nd.id]*dx); tY = nodes.map(nd => 20 + nd.depth*dy);
+    let e = '', v = '';
+    nodes.forEach(nd => { if (nd.parent>=0) e += `<path class="eg" data-i="${nd.id}" d="M${tX[nd.parent]} ${tY[nd.parent]+11} L${tX[nd.id]} ${tY[nd.id]-11}"/>`; });
+    nodes.forEach(nd => {
+      v += `<g class="nd" data-i="${nd.id}"><title>hanoi(${nd.n}, ${nd.s}, ${nd.f}, ${nd.t})</title>`+
+           `<rect class="hit" x="${tX[nd.id]-14}" y="${tY[nd.id]-14}" width="28" height="54" fill="transparent"/>`+
+           `<circle cx="${tX[nd.id]}" cy="${tY[nd.id]}" r="11"/>`+
+           `<text class="n" x="${tX[nd.id]}" y="${tY[nd.id]+4}">${nd.n}</text>`+
+           `<text class="lb" x="${tX[nd.id]}" y="${tY[nd.id]+24}">${nd.s}→${nd.f}</text>`+
+           `<text class="no" x="${tX[nd.id]}" y="${tY[nd.id]+35}">#${nd.moveNo}</text></g>`;
+    });
+    treeSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    treeSvg.setAttribute('width', W); treeSvg.setAttribute('height', H);
+    treeSvg.innerHTML = e + v;
+    nodeEls = [...treeSvg.querySelectorAll('.nd')]; edgeEls = [...treeSvg.querySelectorAll('.eg')];
+    nodeEls.forEach(g => g.addEventListener('click', () => { stop(); go(nodes[+g.dataset.i].enter); }));
+  }
+  function updateTree(sn){
+    const st = nd => idx < nd.enter ? 'future' : idx > nd.exit ? 'done' : (nd.id===sn.node ? 'cur' : 'active');
+    nodes.forEach((nd,i) => {
+      const s = st(nd), g = nodeEls[i];
+      g.setAttribute('class', 'nd ' + s + (idx >= nd.moveSnap ? ' moved' : ''));
+    });
+    edgeEls.forEach(p => { const s = st(nodes[+p.dataset.i]); p.setAttribute('class', 'eg' + (s==='cur'||s==='active' ? ' on' : s==='done' ? ' done' : '')); });
+    const c = sn.node >= 0 ? sn.node : (idx===0 ? 0 : null);
+    if (c !== null && treeBox.scrollWidth > treeBox.clientWidth){
+      const target = tX[c] * (treeSvg.getBoundingClientRect().width / +treeSvg.getAttribute('width')) - treeBox.clientWidth/2;
+      treeBox.scrollTo({left: target, behavior: timer && delays[+$('speed').value] < 150 ? 'auto' : 'smooth'});
+    }
+  }
+
+  const $ = id => document.getElementById(id);
+  const cells = {n:$('c-n'), start:$('c-start'), from:$('c-from'), tmp:$('c-tmp')};
+  let lastTop = null;
+  function render(){
+    const sn = snaps[idx];
+    draw(sn);
+    updateTree(sn);
+    $('msg').innerHTML = sn.msg;
+    $('stepNo').textContent = idx; $('stepMax').textContent = snaps.length-1;
+    $('moves').textContent = sn.moves; $('movesMax').textContent = (1<<N)-1;
+    $('depth').textContent = sn.stack.length;
+    $('scrub').max = snaps.length-1; $('scrub').value = idx;
+
+    // комірки пам'яті
+    const top = sn.stack[sn.stack.length-1] || null;
+    for (const k of ['n','start','from','tmp']){
+      const v = top ? top[k] : (k==='n' && idx>0 ? N : '–');
+      const el = cells[k].querySelector('.val');
+      const prev = lastTop ? lastTop[k] : null;
+      if (String(el.textContent) !== String(v)){
+        el.textContent = v;
+        if (prev !== null || top){ cells[k].classList.remove('flash'); void cells[k].offsetWidth; cells[k].classList.add('flash'); }
+      }
+    }
+    lastTop = top;
+
+    // підсвітка рядка коду
+    codeEl.querySelectorAll('.ln.cur').forEach(e=>e.classList.remove('cur'));
+    const ln = codeEl.querySelector('.ln[data-l="'+sn.line+'"]');
+    if (ln){ ln.classList.add('cur');
+      const t = ln.offsetTop - codeEl.clientHeight/2;
+      if (codeEl.scrollHeight > codeEl.clientHeight) codeEl.scrollTop = t; }
+
+    // стек
+    if (!sn.stack.length){
+      $('stack').innerHTML = '<div class="empty">'+(idx===snaps.length-1?'Стек порожній — усі виклики завершено, керування в main.':'Активна функція: main')+'</div>';
+    } else {
+      let h = '<table class="stack"><tr><th>#</th><th>n</th><th>start</th><th>from</th><th>tmp</th><th>рядок</th></tr>';
+      for (let i=sn.stack.length-1;i>=0;i--){
+        const f = sn.stack[i];
+        h += `<tr class="${i===sn.stack.length-1?'top':''}"><td>${i+1}</td><td>${f.n}</td><td class="c-s">${f.start}</td><td class="c-f">${f.from}</td><td class="c-t">${f.tmp}</td><td>${f.line}</td></tr>`;
+      }
+      h += '<tr><td>0</td><td colspan="4" style="color:var(--muted)">main (n = '+N+')</td><td>16</td></tr></table>';
+      $('stack').innerHTML = h;
+    }
+
+    // консоль
+    const c = $('console');
+    c.textContent = outAll.slice(0, sn.out).map((l,i)=>String(i+1).padStart(3,' ')+':  '+l).join('\n');
+    c.scrollTop = c.scrollHeight;
+
+    $('bBack').disabled = $('bReset').disabled = idx===0;
+    $('bStep').disabled = $('bEnd').disabled = $('bMove').disabled = idx===snaps.length-1;
+    if (idx===snaps.length-1) stop();
+    try { sessionStorage.setItem('hanoi-state', JSON.stringify({N, idx})); } catch(e){}
+  }
+
+  // ---------- Керування ----------
+  let timer = null;
+  const delays = [0,1100,800,550,380,240,140,70,30,8];
+  function stop(){ clearInterval(timer); timer=null; $('bPlay').textContent='▶'; $('bPlay').setAttribute('aria-label','Відтворити'); }
+  function play(){
+    if (idx===snaps.length-1) idx=0;
+    $('bPlay').textContent='⏸'; $('bPlay').setAttribute('aria-label','Пауза');
+    clearInterval(timer);
+    timer = setInterval(()=>{ if (idx<snaps.length-1){ idx++; render(); } else stop(); }, delays[+$('speed').value]);
+  }
+  function go(i){ idx = Math.max(0, Math.min(snaps.length-1, i)); render(); }
+  $('bPlay').onclick = () => timer ? stop() : play();
+  $('bStep').onclick = () => { stop(); go(idx+1); };
+  $('bBack').onclick = () => { stop(); go(idx-1); };
+  $('bReset').onclick = () => { stop(); lastTop=null; go(0); };
+  $('bEnd').onclick = () => { stop(); go(snaps.length-1); };
+  $('bMove').onclick = () => { stop(); let i=idx+1; while(i<snaps.length-1 && !snaps[i].moved) i++; go(i); };
+  $('scrub').oninput = e => { stop(); go(+e.target.value); };
+  $('speed').oninput = () => { if (timer) play(); };
+  const sel = $('nSel');
+  for (let i=1;i<=8;i++){ const o=document.createElement('option'); o.value=i; o.textContent=i; if(i===6)o.selected=true; sel.appendChild(o); }
+  sel.onchange = () => { stop(); init(+sel.value); };
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName==='SELECT' || e.target.tagName==='INPUT') return;
+    if (e.key==='ArrowRight'){ stop(); go(idx+1); }
+    else if (e.key==='ArrowLeft'){ stop(); go(idx-1); }
+    else if (e.key===' '){ e.preventDefault(); timer?stop():play(); }
+  });
+
+  function init(n){ N=n; lastTop=null; build(n); drawTree(); renderCode(n); idx=0; render(); }
+  // Відновлюємо стан, якщо сторінку було перезавантажено
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem('hanoi-state')); } catch(e){}
+  if (saved && saved.N>=1 && saved.N<=8){ sel.value = saved.N; init(saved.N); go(saved.idx|0); }
+  else init(6);
+})();
+</script>
+</body>
+</html>
