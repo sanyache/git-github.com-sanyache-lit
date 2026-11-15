@@ -59,6 +59,13 @@ window.LESSONS = {
       title: "Ханойська вежа",
       desc: "Рекурсія: стержні, стек викликів, комірки пам'яті та дерево рекурсивних викликів.",
       file: "cpp/visual/hanoi-tower.html"
+    },
+    {
+      id: "cpp-array-methods",
+      type: "visual",
+      title: "Масив під лупою",
+      desc: "push_back, pop_back, push_front, pop_front, insert, erase: скільки елементів зсувається і чому O(1) або O(n).",
+      file: "cpp/visual/array-methods.html"
     }
   ]
 };
