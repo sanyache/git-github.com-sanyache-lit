@@ -1,0 +1,492 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Масив під лупою</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: paper workbench — operation picker, one wide memory strip on graph paper, then code + state side by side (stacked on phones) */
+:root{
+  --bg:#eef2f8; --surface:#ffffff; --surface-2:#f6f8fc; --ink:#15223a; --muted:#5a6a83; --line:#d3dcea; --grid:rgba(36,73,216,.07);
+  --accent:#2449d8; --accent-bg:#e7edff; --used-bg:#f0f4ff;
+  --move:#c87400; --move-bg:#fff2dc; --write:#0f8556; --write-bg:#dcf5ea; --danger:#c3332a; --danger-bg:#fde8e6;
+  --code-bg:#f7f9fd; --kw:#2449d8; --num:#b0480e; --fn:#7a3ab8; --hl-line:#fff2dc;
+  --f-display:"Unbounded","Inter",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1420; --surface:#151d2c; --surface-2:#1a2335; --ink:#e5ebf6; --muted:#93a1b9; --line:#29354b; --grid:rgba(125,155,255,.07);
+  --accent:#86a2ff; --accent-bg:#1d2847; --used-bg:#18223a;
+  --move:#f0a53a; --move-bg:#3a2a12; --write:#45cf95; --write-bg:#123527; --danger:#ff7067; --danger-bg:#3d1a18;
+  --code-bg:#121a28; --kw:#86a2ff; --num:#f0a070; --fn:#c99cff; --hl-line:#33280f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1420; --surface:#151d2c; --surface-2:#1a2335; --ink:#e5ebf6; --muted:#93a1b9; --line:#29354b; --grid:rgba(125,155,255,.07);
+  --accent:#86a2ff; --accent-bg:#1d2847; --used-bg:#18223a;
+  --move:#f0a53a; --move-bg:#3a2a12; --write:#45cf95; --write-bg:#123527; --danger:#ff7067; --danger-bg:#3d1a18;
+  --code-bg:#121a28; --kw:#86a2ff; --num:#f0a070; --fn:#c99cff; --hl-line:#33280f; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(22px,4.5vw,34px);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:15px;margin:0;letter-spacing:.01em}
+.lead{margin:6px 0 0;color:var(--muted);max-width:68ch}
+code,.mono{font-family:var(--f-mono)}
+.lead code{background:var(--accent-bg);color:var(--accent);padding:1px 5px;border-radius:4px;font-size:.9em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+/* picker */
+.ops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.op{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0;transition:border-color .15s,background .15s}
+.op:hover{border-color:var(--accent)}
+.op:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.op[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-bg)}
+.op[disabled]{opacity:.5;cursor:not-allowed}
+.op .top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.op .nm{font-family:var(--f-mono);font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op .ds{font-size:12.5px;color:var(--muted)}
+.badge{font-family:var(--f-mono);font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.b1{background:var(--write-bg);color:var(--write)}
+.bn{background:var(--move-bg);color:var(--move)}
+.extra{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+
+/* stage */
+.stage{display:flex;flex-direction:column;gap:14px;background-color:var(--surface);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:16px 16px}
+.stage-head{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:space-between}
+.facts{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.facts b{color:var(--ink);font-variant-numeric:tabular-nums}
+.arr-wrap{position:relative;padding:30px 0 34px}
+.cells{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(3px,.8vw,6px)}
+.slot{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.box{width:100%;aspect-ratio:1/1.12;border:1.5px solid var(--line);border-radius:7px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-mono);font-weight:700;font-size:clamp(12px,2.7vw,20px);font-variant-numeric:tabular-nums;color:var(--muted);transition:background .2s,border-color .2s,color .2s;position:relative}
+.box.used{background:var(--used-bg);border-color:var(--accent);color:var(--ink)}
+.box.stale{color:var(--muted);opacity:.75;border-style:dashed}
+.box.empty{color:var(--muted);opacity:.5;font-weight:400}
+.box.read{background:var(--move-bg);border-color:var(--move);color:var(--move);opacity:1}
+.box.write{background:var(--write-bg);border-color:var(--write);color:var(--write);opacity:1;animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(.86)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+.idx{font-family:var(--f-mono);font-size:clamp(9px,2vw,12px);color:var(--muted)}
+.marker{position:absolute;transform:translateX(-50%);font-family:var(--f-mono);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;line-height:1.1;transition:left .3s ease;pointer-events:none;white-space:nowrap}
+.m-top{bottom:0;color:var(--accent)}
+.m-i{top:0;color:var(--move)}
+.m-top::before{content:"▲";font-size:10px}
+.m-i::after{content:"▼";font-size:10px}
+.ghost{position:absolute;z-index:5;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-weight:700;border-radius:7px;
+  background:var(--move);color:var(--surface);box-shadow:0 6px 16px rgba(0,0,0,.18);pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--line);display:inline-block}
+.sw.u{background:var(--used-bg);border-color:var(--accent)}
+.sw.s{background:var(--surface-2);border-style:dashed}
+.sw.r{background:var(--move-bg);border-color:var(--move)}
+.sw.w{background:var(--write-bg);border-color:var(--write)}
+
+.narr{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;min-height:48px;font-size:14.5px}
+.narr.err{border-left-color:var(--danger);background:var(--danger-bg)}
+.narr.done{border-left-color:var(--write)}
+.narr code{font-size:.92em}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px}
+.field input{width:86px;font:600 15px var(--f-mono);padding:8px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.field input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.btn{font:600 14px var(--f-body);padding:9px 14px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-height:40px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.speed{display:flex;flex-direction:column;gap:4px;margin-left:auto}
+.speed input{width:120px;accent-color:var(--accent)}
+
+/* lower grid */
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+.code{margin:10px 0 0;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:10px 0;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.65}
+.ln{display:block;padding:0 14px 0 0;white-space:pre;border-left:3px solid transparent}
+.ln .no{display:inline-block;width:2.6em;text-align:right;padding-right:12px;color:var(--muted);opacity:.7;user-select:none}
+.ln.cur{background:var(--hl-line);border-left-color:var(--move)}
+.kw{color:var(--kw);font-weight:600}.nu{color:var(--num)}.fn{color:var(--fn)}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+.state{display:flex;flex-direction:column;gap:14px}
+.vars{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.var{font-family:var(--f-mono);font-size:13.5px;border:1px solid var(--line);border-radius:6px;padding:4px 9px;background:var(--surface-2)}
+.var b{font-variant-numeric:tabular-nums}
+.var.ch{border-color:var(--move);background:var(--move-bg)}
+.out{font-family:var(--f-mono);font-size:13.5px;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-top:8px;overflow-x:auto;white-space:pre}
+.out .pr{color:var(--muted)}
+.cx{display:flex;align-items:center;gap:12px;margin-top:8px}
+.cx-big{font-family:var(--f-display);font-weight:700;font-size:26px;padding:4px 12px;border-radius:10px}
+.cx-txt{font-size:13.5px;color:var(--muted)}
+.counters{display:flex;gap:18px;font-family:var(--f-mono);font-size:13px;margin-top:10px;flex-wrap:wrap}
+.counters b{font-size:18px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.chart{margin-top:12px}
+.bars{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;align-items:end;height:90px;border-bottom:1px solid var(--line);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 25%;background-position:0 0}
+.bar{background:var(--accent-bg);border:1px solid var(--accent);border-bottom:none;border-radius:3px 3px 0 0;min-height:2px;transition:height .3s}
+.bar.now{background:var(--move);border-color:var(--move)}
+.bx{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;font-family:var(--f-mono);font-size:10px;color:var(--muted);text-align:center;margin-top:3px}
+.chart-cap{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px;gap:8px}
+
+.tablewrap{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.empty-h{color:var(--muted);font-size:13.5px;padding:10px 0 0}
+
+@media (max-width:760px){
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .ops{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .speed{margin-left:0}
+}
+@media (max-width:420px){
+  .op{padding:8px 9px}.op .nm{font-size:13px}.op .ds{font-size:11.5px}
+  .marker{font-size:10.5px}
+  .code{font-size:12.5px}
+  .btn{padding:9px 11px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Масив під лупою</h1>
+    <p class="lead">Як працюють <code>push_back</code>, <code>pop_back</code>, <code>push_front</code>, <code>pop_front</code> усередині масиву з запасом місця, як у <code>std::vector</code>. Оберіть функцію, запустіть її і подивіться, скільки елементів доводиться зсувати.</p>
+  </header>
+
+  <section aria-label="Вибір функції">
+    <div class="ops" id="ops"></div>
+  </section>
+
+  <section class="card stage" aria-label="Пам'ять масиву">
+    <div class="stage-head">
+      <h2>int A[12]</h2>
+      <div class="facts">
+        <span>елементів n = top = <b id="fN">7</b></span>
+        <span>ємність = <b>12</b></span>
+        <span>вільно = <b id="fFree">5</b></span>
+      </div>
+    </div>
+    <div class="arr-wrap" id="arrWrap">
+      <div class="cells" id="cells"></div>
+      <div class="marker m-i" id="mI" hidden>i</div>
+      <div class="marker m-top" id="mTop">top</div>
+    </div>
+    <div class="legend">
+      <span><i class="sw u"></i>елемент масиву (індекс &lt; top)</span>
+      <span><i class="sw s"></i>запас: «сміття» або ? (не входить у масив)</span>
+      <span><i class="sw r"></i>читаємо</span>
+      <span><i class="sw w"></i>записуємо</span>
+    </div>
+    <div class="narr" id="narr" role="status" aria-live="polite">Оберіть функцію й натисніть «Запустити» або «Крок».</div>
+    <div class="controls">
+      <div class="field"><label class="label" for="inEl">значення el</label><input id="inEl" type="number" value="8" min="-99" max="999"></div>
+      <div class="field" id="posField" hidden><label class="label" for="inPos">позиція pos</label><input id="inPos" type="number" value="2" min="0"></div>
+      <button class="btn primary" id="bRun">▶ Запустити</button>
+      <button class="btn" id="bStep">Крок →</button>
+      <button class="btn" id="bSkip">До кінця ⇥</button>
+      <button class="btn" id="bReset">Скинути масив</button>
+      <div class="speed"><label class="label" for="inSpeed">швидкість</label><input id="inSpeed" type="range" min="1" max="5" value="3"></div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section class="card" aria-label="Код функції">
+      <h2 id="codeTitle">Код функції</h2>
+      <pre class="code" id="code"></pre>
+      <p class="note" id="codeNote"></p>
+    </section>
+
+    <div class="state">
+      <section class="card">
+        <h2>Змінні</h2>
+        <div class="vars" id="vars"></div>
+        <div class="out" id="out"></div>
+      </section>
+      <section class="card">
+        <h2>Складність</h2>
+        <div class="cx"><span class="cx-big" id="cxBig">O(n)</span><span class="cx-txt" id="cxTxt"></span></div>
+        <div class="counters">
+          <span>зсувів<br><b id="cShift">0</b></span>
+          <span>операцій з A[ ]<br><b id="cOps">0</b></span>
+        </div>
+        <div class="chart">
+          <div class="bars" id="bars"></div>
+          <div class="bx" id="bx"></div>
+          <div class="chart-cap"><span>операції з A[ ] при різних n</span><span id="chartNote"></span></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Журнал викликів</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Виклик</th><th>n до</th><th>Зсувів</th><th>Операцій з A[ ]</th><th>Складність</th></tr></thead>
+        <tbody id="hist"></tbody>
+      </table>
+    </div>
+    <p class="empty-h" id="histEmpty">Тут з'являться виконані виклики. Порівняйте <code>push_back</code> і <code>push_front</code> на одному й тому самому масиві.</p>
+  </section>
+</div>
+
+<script>
+const CAP = 12;
+const INIT = () => ({A:[1,2,3,4,5,6,7,null,null,null,null,null], top:7});
+let mem = INIT();
+
+const OPS = {
+  push_back:{nm:'arr_push_back', short:'push_back', ds:'додати в кінець', cx:'1', pos:false, el:true,
+    code:['void arr_push_back(int A[], int &top, int el){','    A[top] = el;','    top ++;','}'],
+    txt:'Сталий час: один запис у клітинку A[top], незалежно від кількості елементів.',
+    cost:n=>n<CAP?1:0,
+    gen(A,top,{el}){const S=[],ctx=mk(S,A,()=>top);let ops=0;
+      ctx(0,`Виклик <code>arr_push_back(A, top, ${el})</code>. Перша вільна клітинка: <code>A[${top}]</code>.`,{top,el},{},0,0);
+      A[top]=el;ops++;ctx(1,`<code>A[${top}] = ${el}</code>: записуємо елемент одразу після останнього. Зсувати нічого не треба.`,{top,el},{write:[top]},0,ops);
+      top++;ctx(2,`<code>top++</code> → top = ${top}. Масив виріс на один елемент.`,{top,el},{},0,ops);
+      ctx(3,`Готово: 1 операція з масивом, 0 зсувів. Це <b>O(1)</b>.`,{top,el},{},0,ops,'done');
+      return {S,A,top,shifts:0,ops,ret:null};}},
+  pop_back:{nm:'arr_pop_back', short:'pop_back', ds:'забрати з кінця', cx:'1', pos:false, el:false,
+    code:['int arr_pop_back(int A[], int &top){','    top --;','    int el = A[top];','    return el;','}'],
+    txt:'Сталий час: зменшуємо top і читаємо одну клітинку. Значення фізично лишається в пам’яті.',
+    cost:n=>n>0?1:0,
+    gen(A,top){const S=[],ctx=mk(S,A,()=>top);let ops=0,el;
+      ctx(0,`Виклик <code>arr_pop_back(A, top)</code>. Зараз top = ${top}.`,{top},{},0,0);
+      top--;ctx(1,`<code>top--</code> → top = ${top}. Клітинка <code>A[${top}]</code> більше не входить у масив.`,{top},{},0,ops);
+      el=A[top];ops++;ctx(2,`<code>int el = A[${top}]</code> → el = ${el}. Читаємо значення, яке щойно «вийшло» з масиву.`,{top,el},{read:[top]},0,ops);
+      ctx(3,`<code>return ${el}</code>. Значення ${el} лишилося в пам’яті як «сміття», але масив тепер має ${top} елементів. Це <b>O(1)</b>.`,{top,el,'return':el},{},0,ops,'done');
+      return {S,A,top,shifts:0,ops,ret:el};}},
+  push_front:{nm:'arr_push_front', short:'push_front', ds:'додати на початок', cx:'n', pos:false, el:true,
+    code:['void arr_push_front(int A[], int &top, int el){','    for(int i = top; i > 0; i--){','        A[i] = A[i-1];','    }','    top ++;','    A[0] = el;','}'],
+    txt:'Лінійний час: щоб звільнити A[0], кожен з n елементів зсувається на одну позицію праворуч.',
+    cost:n=>n<CAP?n+1:0,
+    gen(A,top,{el}){const S=[],ctx=mk(S,A,()=>top);let ops=0,sh=0,i;
+      ctx(0,`Виклик <code>arr_push_front(A, top, ${el})</code>. Щоб звільнити <code>A[0]</code>, треба зсунути всі ${top} елементів праворуч.`,{top,el},{},0,0);
+      for(i=top;i>0;i--){
+        ctx(1,`Умова <code>i &gt; 0</code>: i = ${i}, так. Ідемо з кінця, щоб нічого не затерти.`,{top,el,i},{},sh,ops,null,i);
+        A[i]=A[i-1];sh++;ops++;
+        ctx(2,`<code>A[${i}] = A[${i-1}]</code>: копіюємо ${A[i]} на одну клітинку праворуч. Зсув №${sh}.`,{top,el,i},{read:[i-1],write:[i],move:[i-1,i]},sh,ops,null,i);
+      }
+      ctx(1,`Умова <code>i &gt; 0</code>: i = 0, ні. Цикл завершено після ${sh} зсувів. Зверніть увагу: A[0] і A[1] зараз однакові.`,{top,el,i},{},sh,ops,null,0);
+      top++;ctx(4,`<code>top++</code> → top = ${top}.`,{top,el},{},sh,ops);
+      A[0]=el;ops++;ctx(5,`<code>A[0] = ${el}</code>: записуємо новий елемент на звільнене місце.`,{top,el},{write:[0]},sh,ops);
+      ctx(6,`Готово: ${sh} зсувів + 1 запис = ${ops} операцій. Кількість дій зростає разом з n, тому це <b>O(n)</b>.`,{top,el},{},sh,ops,'done');
+      return {S,A,top,shifts:sh,ops,ret:null};}},
+  pop_front:{nm:'arr_pop_front', short:'pop_front', ds:'забрати з початку', cx:'n', pos:false, el:false,
+    code:['int arr_pop_front(int A[], int &top){','    int el = A[0];','    for(int i=0; i<top-1; i++){','        A[i] = A[i+1];','    }','    top --;','    return el;','}'],
+    txt:'Лінійний час: після видалення A[0] решта n−1 елементів зсувається ліворуч, щоб закрити «дірку».',
+    cost:n=>n>0?n:0,
+    gen(A,top){const S=[],ctx=mk(S,A,()=>top);let ops=0,sh=0,i,el;
+      ctx(0,`Виклик <code>arr_pop_front(A, top)</code>. Зараз top = ${top}.`,{top},{},0,0);
+      el=A[0];ops++;ctx(1,`<code>int el = A[0]</code> → el = ${el}. Запам’ятовуємо перший елемент.`,{top,el},{read:[0]},sh,ops);
+      for(i=0;i<top-1;i++){
+        ctx(2,`Умова <code>i &lt; top-1</code>: ${i} &lt; ${top-1}, так.`,{top,el,i},{},sh,ops,null,i);
+        A[i]=A[i+1];sh++;ops++;
+        ctx(3,`<code>A[${i}] = A[${i+1}]</code>: зсуваємо ${A[i]} на одну клітинку ліворуч. Зсув №${sh}.`,{top,el,i},{read:[i+1],write:[i],move:[i+1,i]},sh,ops,null,i);
+      }
+      ctx(2,`Умова <code>i &lt; top-1</code>: ${i} &lt; ${top-1}, ні. Цикл завершено після ${sh} зсувів.`,{top,el,i},{},sh,ops,null,i);
+      top--;ctx(5,`<code>top--</code> → top = ${top}. Останнє значення лишилось у пам’яті як «сміття».`,{top,el},{},sh,ops);
+      ctx(6,`<code>return ${el}</code>. ${sh} зсувів + 1 читання = ${ops} операцій. Це <b>O(n)</b>.`,{top,el,'return':el},{},sh,ops,'done');
+      return {S,A,top,shifts:sh,ops,ret:el};}},
+  insert:{nm:'arr_insert', short:'insert', ds:'вставити в позицію', cx:'n', pos:true, el:true, extra:true,
+    code:['void arr_insert(int A[], int &top, int pos, int el){','    for(int i = top; i > pos; i--){','        A[i] = A[i-1];','    }','    A[pos] = el;','    top ++;','}'],
+    txt:'Лінійний час: зсуваються всі елементи праворуч від pos, їх n−pos. Найгірше при pos = 0, найкраще при pos = n.',
+    cost:n=>n<CAP?n+1:0,
+    gen(A,top,{el,pos}){const S=[],ctx=mk(S,A,()=>top);let ops=0,sh=0,i;
+      ctx(0,`Виклик <code>arr_insert(A, top, ${pos}, ${el})</code>. Праворуч від позиції ${pos} є ${top-pos} елементів, їх треба зсунути.`,{top,pos,el},{},0,0);
+      for(i=top;i>pos;i--){
+        ctx(1,`Умова <code>i &gt; pos</code>: ${i} &gt; ${pos}, так.`,{top,pos,el,i},{},sh,ops,null,i);
+        A[i]=A[i-1];sh++;ops++;
+        ctx(2,`<code>A[${i}] = A[${i-1}]</code>: зсуваємо ${A[i]} праворуч. Зсув №${sh}.`,{top,pos,el,i},{read:[i-1],write:[i],move:[i-1,i]},sh,ops,null,i);
+      }
+      ctx(1,`Умова <code>i &gt; pos</code>: ${i} &gt; ${pos}, ні. Цикл завершено після ${sh} зсувів.`,{top,pos,el,i},{},sh,ops,null,i);
+      A[pos]=el;ops++;ctx(4,`<code>A[${pos}] = ${el}</code>: записуємо новий елемент.`,{top,pos,el},{write:[pos]},sh,ops);
+      top++;ctx(5,`<code>top++</code> → top = ${top}.`,{top,pos,el},{},sh,ops);
+      ctx(6,`Готово: ${sh} зсувів + 1 запис. ${pos===top-1?'Вставка в кінець не потребує зсувів, як push_back.':'Що ближче pos до початку, то більше роботи.'} У гіршому випадку <b>O(n)</b>.`,{top,pos,el},{},sh,ops,'done');
+      return {S,A,top,shifts:sh,ops,ret:null};}},
+  erase:{nm:'arr_erase', short:'erase', ds:'видалити з позиції', cx:'n', pos:true, el:false, extra:true,
+    code:['int arr_erase(int A[], int &top, int pos){','    int el = A[pos];','    for(int i = pos; i < top-1; i++){','        A[i] = A[i+1];','    }','    top --;','    return el;','}'],
+    txt:'Лінійний час: елементи праворуч від pos (їх n−pos−1) зсуваються ліворуч. Найгірше при pos = 0.',
+    cost:n=>n>0?n:0,
+    gen(A,top,{pos}){const S=[],ctx=mk(S,A,()=>top);let ops=0,sh=0,i,el;
+      ctx(0,`Виклик <code>arr_erase(A, top, ${pos})</code>. Зараз top = ${top}.`,{top,pos},{},0,0);
+      el=A[pos];ops++;ctx(1,`<code>int el = A[${pos}]</code> → el = ${el}.`,{top,pos,el},{read:[pos]},sh,ops);
+      for(i=pos;i<top-1;i++){
+        ctx(2,`Умова <code>i &lt; top-1</code>: ${i} &lt; ${top-1}, так.`,{top,pos,el,i},{},sh,ops,null,i);
+        A[i]=A[i+1];sh++;ops++;
+        ctx(3,`<code>A[${i}] = A[${i+1}]</code>: зсуваємо ${A[i]} ліворуч. Зсув №${sh}.`,{top,pos,el,i},{read:[i+1],write:[i],move:[i+1,i]},sh,ops,null,i);
+      }
+      ctx(2,`Умова <code>i &lt; top-1</code>: ${i} &lt; ${top-1}, ні. Цикл завершено після ${sh} зсувів.`,{top,pos,el,i},{},sh,ops,null,i);
+      top--;ctx(5,`<code>top--</code> → top = ${top}.`,{top,pos,el},{},sh,ops);
+      ctx(6,`<code>return ${el}</code>. ${sh} зсувів + 1 читання. У гіршому випадку <b>O(n)</b>.`,{top,pos,el,'return':el},{},sh,ops,'done');
+      return {S,A,top,shifts:sh,ops,ret:el};}},
+};
+
+function mk(S,A,getTop){
+  return (line,msg,vars,hl,shifts,ops,kind=null,iPos=null)=>S.push({line,msg,vars:{...vars},hl:hl||{},A:A.slice(),top:getTop(),shifts,ops,kind,iPos});
+}
+
+const $=id=>document.getElementById(id);
+let cur='push_front', run=null, timer=null, history=[];
+const delays=[1500,1050,700,420,220];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- build static UI ----------
+const opsEl=$('ops');
+for(const k in OPS){const o=OPS[k];
+  const b=document.createElement('button');b.className='op';b.id='op-'+k;b.dataset.k=k;
+  b.innerHTML=`<span class="top"><span class="nm">${o.short}</span><span class="badge ${o.cx==='1'?'b1':'bn'}">O(${o.cx})</span></span><span class="ds">${o.ds}${o.extra?' <span class="extra">· як у vector</span>':''}</span>`;
+  b.onclick=()=>{if(run)return;cur=k;renderOp();renderIdle();};
+  opsEl.appendChild(b);}
+const cellsEl=$('cells');
+for(let k=0;k<CAP;k++){const s=document.createElement('div');s.className='slot';s.innerHTML=`<div class="box" id="c${k}"></div><div class="idx">${k}</div>`;cellsEl.appendChild(s);}
+const bars=$('bars'),bx=$('bx');
+for(let n=0;n<=CAP;n++){const d=document.createElement('div');d.className='bar';d.id='bar'+n;bars.appendChild(d);const l=document.createElement('div');l.textContent=n;bx.appendChild(l);}
+
+function hiCode(line){
+  const esc=line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return esc.replace(/\b(void|int|for|return)\b/g,'<span class="kw">$1</span>')
+    .replace(/\b(arr_\w+)\b/g,'<span class="fn">$1</span>')
+    .replace(/\b(\d+)\b/g,'<span class="nu">$1</span>');
+}
+
+function renderOp(){
+  const o=OPS[cur];
+  document.querySelectorAll('.op').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===cur));
+  $('codeTitle').textContent=o.nm+'()';
+  $('code').innerHTML=o.code.map((l,i)=>`<span class="ln" id="ln${i}"><span class="no">${i+1}</span>${hiCode(l)}</span>`).join('');
+  $('codeNote').innerHTML=o.extra?'Цієї функції немає у файлі <code>array_methods.cpp</code>. Вона написана в тому ж стилі, щоб показати <code>vector::insert</code> / <code>erase</code>.':'Код з <code>array_methods.cpp</code>. Як і в оригіналі, перевірок на переповнення чи порожній масив тут немає, тому візуалізація перевіряє це сама.';
+  $('posField').hidden=!o.pos; $('inEl').parentElement.hidden=!o.el;
+  const big=$('cxBig');big.textContent=`O(${o.cx})`;big.className='cx-big '+(o.cx==='1'?'b1':'bn');
+  $('cxTxt').textContent=o.txt;
+  $('chartNote').textContent=o.pos?'найгірший випадок: pos = 0':(o.cx==='1'?'не залежить від n':'росте лінійно');
+  const mx=CAP+1;
+  for(let n=0;n<=CAP;n++){$('bar'+n).style.height=(o.cost(n)/mx*100)+'%';}
+}
+
+// ---------- render memory ----------
+function renderMem(A,top,hl={},iPos=null){
+  for(let k=0;k<CAP;k++){const c=$('c'+k);let cls='box';
+    if(k<top)cls+=' used';else if(A[k]!==null)cls+=' stale';else cls+=' empty';
+    if(hl.read&&hl.read.includes(k))cls+=' read';
+    if(hl.write&&hl.write.includes(k))cls+=' write';
+    c.className=cls;c.textContent=A[k]===null?'?':A[k];}
+  $('fN').textContent=top;$('fFree').textContent=CAP-top;
+  placeMarker($('mTop'),top,'top = '+top);
+  const mi=$('mI');
+  if(iPos===null){mi.hidden=true;}else{mi.hidden=false;placeMarker(mi,iPos,'i = '+iPos);}
+  for(let n=0;n<=CAP;n++)$('bar'+n).classList.toggle('now',n===top);
+}
+function placeMarker(el,pos,label){
+  el.textContent=label;
+  const wrap=$('arrWrap').getBoundingClientRect();
+  let x;
+  if(pos<CAP){const r=$('c'+pos).getBoundingClientRect();x=r.left+r.width/2-wrap.left;}
+  else{const r=$('c'+(CAP-1)).getBoundingClientRect();x=r.right-wrap.left+2;}
+  el.style.left=x+'px';
+}
+function flyGhost(from,to,val,dur){
+  if(reduce)return;
+  const wrap=$('arrWrap').getBoundingClientRect(),a=$('c'+from).getBoundingClientRect(),b=$('c'+to).getBoundingClientRect();
+  const g=document.createElement('div');g.className='ghost';g.textContent=val;
+  Object.assign(g.style,{left:(a.left-wrap.left)+'px',top:(a.top-wrap.top)+'px',width:a.width+'px',height:a.height+'px',fontSize:getComputedStyle($('c'+from)).fontSize});
+  $('arrWrap').appendChild(g);
+  const dx=b.left-a.left,lift=-Math.min(26,a.height*.6);
+  g.animate([{transform:'translate(0,0)'},{transform:`translate(${dx/2}px,${lift}px)`},{transform:`translate(${dx}px,0)`}],{duration:Math.min(dur*.8,600),easing:'ease-in-out'}).onfinish=()=>g.remove();
+}
+
+function renderVars(vars,prev={}){
+  const keys=Object.keys(vars);
+  $('vars').innerHTML=keys.length?keys.map(k=>`<span class="var${run&&run.idx>0&&prev[k]!==vars[k]?' ch':''}">${k} = <b>${vars[k]}</b></span>`).join(''):'<span class="var">—</span>';
+}
+function renderOut(A,top,ret){
+  let s=`<span class="pr">print_array(A, top):</span>\n${A.slice(0,top).join(' ')||'(порожньо)'}`;
+  if(ret!==undefined&&ret!==null)s+=`\n<span class="pr">повернуто:</span> ${ret}`;
+  $('out').innerHTML=s;
+}
+function setNarr(html,kind){const n=$('narr');n.innerHTML=html;n.className='narr'+(kind?' '+kind:'');}
+function setLine(i){document.querySelectorAll('.ln').forEach((l,k)=>l.classList.toggle('cur',k===i));}
+
+function renderIdle(){
+  renderMem(mem.A,mem.top);setLine(-1);renderVars({top:mem.top});renderOut(mem.A,mem.top);
+  $('cShift').textContent=0;$('cOps').textContent=0;
+  const o=OPS[cur];setNarr(`Обрано <code>${o.nm}()</code>, складність <b>O(${o.cx})</b>. Натисніть «Запустити», щоб переглянути виконання, або «Крок», щоб іти рядок за рядком.`);
+  syncButtons();
+}
+
+// ---------- run control ----------
+function validate(){
+  const o=OPS[cur],n=mem.top;
+  if(o.el&&n>=CAP)return `Масив заповнений: top = ${n} = ємність. Оригінальний код не перевіряє це і записав би значення за межі масиву. Видаліть елемент або натисніть «Скинути масив».`;
+  if(!o.el&&n===0)return `Масив порожній (top = 0). Без перевірки top стане −1 і код прочитає чужу пам’ять. Додайте елемент або скиньте масив.`;
+  const el=parseInt($('inEl').value,10);
+  if(o.el&&(isNaN(el)||el<-99||el>999))return 'Введіть ціле значення el від −99 до 999.';
+  if(o.pos){const p=parseInt($('inPos').value,10),max=o.el?n:n-1;
+    if(isNaN(p)||p<0||p>max)return `Позиція pos має бути від 0 до ${max}${o.el?' (pos = n означає вставку в кінець)':''}.`;}
+  return null;
+}
+function startRun(){
+  const err=validate();if(err){setNarr(err,'err');return false;}
+  const o=OPS[cur],args={el:parseInt($('inEl').value,10),pos:parseInt($('inPos').value,10)};
+  const nBefore=mem.top;
+  const res=o.gen(mem.A.slice(),mem.top,args);
+  run={...res,idx:-1,nBefore,args,o};return true;
+}
+function showStep(){
+  const st=run.S[run.idx],prev=run.idx>0?run.S[run.idx-1].vars:{};
+  renderMem(st.A,st.top,st.hl,st.iPos);
+  if(st.hl.move)flyGhost(st.hl.move[0],st.hl.move[1],st.A[st.hl.move[1]],delays[$('inSpeed').value-1]);
+  setLine(st.line);renderVars(st.vars,prev);renderOut(st.A,st.top,st.vars['return']);
+  $('cShift').textContent=st.shifts;$('cOps').textContent=st.ops;
+  setNarr(`<span class="mono" style="color:var(--muted)">крок ${run.idx+1}/${run.S.length} · </span>`+st.msg,st.kind);
+}
+function step(){
+  if(!run&&!startRun())return;
+  run.idx++;showStep();
+  if(run.idx>=run.S.length-1)finish();
+  syncButtons();
+}
+function finish(){
+  stopTimer();
+  mem={A:run.A,top:run.top};
+  const o=run.o,a=run.args;
+  const call=o.short+'('+[o.pos?a.pos:null,o.el?a.el:null].filter(v=>v!==null).join(', ')+')';
+  history.unshift({call,n:run.nBefore,sh:run.shifts,ops:run.ops,cx:o.cx});history=history.slice(0,8);
+  renderHist();run=null;syncButtons();
+}
+function play(){
+  if(timer){stopTimer();syncButtons();return;}
+  if(!run&&!startRun())return;
+  const tick=()=>{step();if(run)timer=setTimeout(tick,delays[$('inSpeed').value-1]);else timer=null;syncButtons();};
+  timer=setTimeout(tick,0);syncButtons();
+}
+function stopTimer(){if(timer){clearTimeout(timer);timer=null;}}
+function skip(){
+  if(!run&&!startRun())return;stopTimer();run.idx=run.S.length-1;showStep();finish();
+}
+function reset(){stopTimer();run=null;mem=INIT();history=[];renderHist();renderIdle();}
+function syncButtons(){
+  const busy=!!run;
+  document.querySelectorAll('.op').forEach(b=>b.disabled=busy&&b.dataset.k!==cur);
+  $('inEl').disabled=busy;$('inPos').disabled=busy;
+  $('bRun').textContent=timer?'❚❚ Пауза':(busy?'▶ Продовжити':'▶ Запустити');
+}
+function renderHist(){
+  $('hist').innerHTML=history.map(h=>`<tr><td class="num">${h.call}</td><td class="num">${h.n}</td><td class="num">${h.sh}</td><td class="num">${h.ops}</td><td><span class="badge ${h.cx==='1'?'b1':'bn'}">O(${h.cx})</span></td></tr>`).join('');
+  $('histEmpty').hidden=history.length>0;
+}
+
+$('bRun').onclick=play;$('bStep').onclick=()=>{stopTimer();step();};$('bSkip').onclick=skip;$('bReset').onclick=reset;
+addEventListener('resize',()=>{const st=run&&run.idx>=0?run.S[run.idx]:null;if(st)renderMem(st.A,st.top,{},st.iPos);else renderMem(mem.A,mem.top);});
+document.fonts&&document.fonts.ready.then(()=>{const st=run&&run.idx>=0?run.S[run.idx]:null;if(!st)renderMem(mem.A,mem.top);});
+
+renderOp();renderIdle();
+</script>
+
+</body></html>
