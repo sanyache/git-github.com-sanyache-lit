@@ -70,10 +70,11 @@ function renderWorkshop(L){
  $("#levelContent").querySelectorAll(".answer").forEach(b=>b.addEventListener("click",()=>{if(answered)return;$("#levelContent").querySelectorAll(".answer").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");}));
  window.workshopOrder=()=>order;
 }
-function blockHTML(x,i,selected=false){return `<div class="code-block ${selected?"selected":""}" data-i="${i}"><span class="grip">⠿</span><span class="block-text">${escapeHTML(x)}</span></div>`;}
+function blockText(x){const n=x.length-x.trimStart().length;return `<span class="block-text" style="padding-left:${n*0.6}em">${escapeHTML(x.trimStart())}</span>`;}
+function blockHTML(x,i,selected=false){return `<div class="code-block ${selected?"selected":""}" data-i="${i}"><span class="grip">⠿</span>${blockText(x)}</div>`;}
 const finalBlocks=[
  "secret = 13","guess = 0","while guess != secret:","guess = int(input('Введи число: '))",
- "if guess < secret:","print('Більше!')","elif guess > secret:","print('Менше!')",
+ "if guess < secret:","print('Загадане число більше')","elif guess > secret:","print('Загадане число менше')",
  "else:","print('Вітаю! Ви вгадали!')","break"
 ];
 const finalCorrect=[0,1,2,3,4,5,6,7,8,9,10];
@@ -81,18 +82,18 @@ let finalOrder=[...finalCorrect],finalSelected=0,simCount=0;
 function shuffledFinal(){let a;do{a=[...finalCorrect];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}while(a.some((x,i)=>x===finalCorrect[i]));return a;}
 function renderFinal(){
  finalOrder=shuffledFinal();finalSelected=0;simCount=0;
- const labels=["secret = 13","guess = 0","while guess != secret:","    guess = int(input('Введи число: '))","    if guess < secret:","        print('Більше!')","    elif guess > secret:","        print('Менше!')","    else:","        print('Вітаю! Ви вгадали!')","        break"];
- $("#levelContent").innerHTML=`<div class="lesson-box"><h3>🎯 Умова задачі</h3><p>Комп'ютер загадав число <b>13</b>. Склади програму, яка просить вводити числа, підказує «Більше!» або «Менше!» та завершує цикл після правильної відповіді.</p></div>
+ const labels=["secret = 13","guess = 0","while guess != secret:","    guess = int(input('Введи число: '))","    if guess < secret:","        print('Загадане число більше')","    elif guess > secret:","        print('Загадане число менше')","    else:","        print('Вітаю! Ви вгадали!')","        break"];
+ $("#levelContent").innerHTML=`<div class="lesson-box"><h3>🎯 Умова задачі</h3><p>Комп'ютер загадав число <b>13</b>. Склади програму, яка просить вводити числа, підказує: якщо введене число <b>менше</b> за загадане — «Загадане число більше», якщо <b>більше</b> — «Загадане число менше». Після правильної відповіді цикл має завершитися.</p></div>
  <div class="block-workspace"><p class="block-hint">ПРОГРАМА · вибери блок і переміщуй стрілками. Умови та вкладені команди мають іти в наведеному порядку.</p><div class="block-list" id="finalBlocks"></div><div class="block-actions"><button class="mini-btn" id="finalUp">↑ Угору</button><button class="mini-btn" id="finalDown">↓ Вниз</button><button class="mini-btn" id="finalReset">Перемішати знову</button></div><p class="block-hint" style="margin-top:12px">Підказка: блоки з відступом належать до попередньої умови або циклу.</p></div>
  <div class="simulator"><label for="guessInput">▶ Симуляція програми (секретне число: 13)</label><input id="guessInput" type="number" min="1" max="20" inputmode="numeric" placeholder="Введи число від 1 до 20"><button class="mini-btn" id="guessBtn">Виконати спробу</button><div class="sim-output" id="simOutput">Очікую введення числа…</div></div>`;
  const el=$("#finalBlocks");
- function paint(){el.innerHTML=finalOrder.map((id,i)=>`<div class="code-block ${i===finalSelected?"selected":""}" data-index="${i}"><span class="grip">⠿</span><span class="block-text">${escapeHTML(labels[id])}</span></div>`).join("");el.querySelectorAll(".code-block").forEach((b,i)=>b.onclick=()=>{finalSelected=i;paint();});$("#finalUp").disabled=finalSelected===0;$("#finalDown").disabled=finalSelected===finalOrder.length-1;}
+ function paint(){el.innerHTML=finalOrder.map((id,i)=>`<div class="code-block ${i===finalSelected?"selected":""}" data-index="${i}"><span class="grip">⠿</span>${blockText(labels[id])}</div>`).join("");el.querySelectorAll(".code-block").forEach((b,i)=>b.onclick=()=>{finalSelected=i;paint();});$("#finalUp").disabled=finalSelected===0;$("#finalDown").disabled=finalSelected===finalOrder.length-1;}
  paint();
  $("#finalUp").onclick=()=>{if(finalSelected>0){[finalOrder[finalSelected-1],finalOrder[finalSelected]]=[finalOrder[finalSelected],finalOrder[finalSelected-1]];finalSelected--;paint();}};
  $("#finalDown").onclick=()=>{if(finalSelected<finalOrder.length-1){[finalOrder[finalSelected+1],finalOrder[finalSelected]]=[finalOrder[finalSelected],finalOrder[finalSelected+1]];finalSelected++;paint();}};
  $("#finalReset").onclick=()=>{finalOrder=shuffledFinal();finalSelected=0;paint();$("#simOutput").textContent="Блоки перемішано. Склади програму заново."};
- $("#guessBtn").onclick=()=>{const v=Number($("#guessInput").value);const out=$("#simOutput");if(!Number.isInteger(v)||v<1||v>20){out.textContent="Введи ціле число від 1 до 20.";return;}simCount++;out.textContent=v<13?"Більше! Спробуй ще раз.":v>13?"Менше! Спробуй ще раз.":"Вітаю! Ви вгадали! Цикл завершено через break.";if(v===13){out.textContent+="\nКількість спроб: "+simCount;$("#guessBtn").disabled=true;window.simWon=true;}};
- window.finalIsCorrect=()=>finalOrder.every((x,i)=>x===finalCorrect[i]);window.simWon=false;
+ $("#guessBtn").onclick=()=>{const v=Number($("#guessInput").value);const out=$("#simOutput");if(!Number.isInteger(v)||v<1||v>20){out.textContent="Введи ціле число від 1 до 20.";return;}simCount++;out.textContent=v<13?"Загадане число більше. Спробуй ще раз.":v>13?"Загадане число менше. Спробуй ще раз.":"Вітаю! Ви вгадали! Цикл завершено через break.";if(v===13){out.textContent+="\nКількість спроб: "+simCount;$("#guessBtn").disabled=true;window.simWon=true;}};
+ window.finalIsCorrect=()=>{const o=[...finalOrder];if(o[0]===1&&o[1]===0){o[0]=0;o[1]=1;}return o.every((x,i)=>x===finalCorrect[i]);};window.simWon=false;
 }
 function checkLevel(){
  if(answered)return;
