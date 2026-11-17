@@ -33,6 +33,13 @@ window.LESSONS = {
       title: "Місія RANGE()",
       desc: "Пригода з 5 локацій: функція range() — параметри start, stop і step.",
       file: "python/games/range-adventure/index.html"
+    },
+    {
+      id: "py-while-intro",
+      type: "game",
+      title: "Таємниця циклу while",
+      desc: "Місія з 6 локацій: цикл while, break і continue, фінальна гра «Відгадай число».",
+      file: "python/games/while-intro/index.html"
     }
     // Приклад:
     // { id: "py-bubble", type: "visual", title: "Сортування бульбашкою", desc: "Покрокова робота алгоритму", file: "python/visual/bubble-sort.html" },

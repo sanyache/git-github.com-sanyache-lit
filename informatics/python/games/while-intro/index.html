@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10172f">
+  <title>Таємниця циклу while — навчальна пригода</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="На головну" id="homeLink">
+        <span class="brand-mark">⌘</span>
+        <span><b>КОДЕКС</b><small>навчальна пригода</small></span>
+      </a>
+      <div class="top-stats">
+        <div class="stat"><span class="stat-icon">⭐</span><span><b id="scoreTop">0</b><small>балів</small></span></div>
+        <div class="stat"><span class="stat-icon">🗝️</span><span><b id="keysTop">0/5</b><small>ключів</small></span></div>
+        <button class="icon-btn" id="soundToggle" aria-label="Увімкнути або вимкнути звук" title="Звук">🔊</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="introScreen" class="screen intro-screen active">
+        <div class="intro-art">
+          <div class="planet planet-one"></div><div class="planet planet-two"></div>
+          <div class="portal"><span>while</span><i>⌁</i></div>
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <span class="float-code code-one">if x == 7:</span>
+          <span class="float-code code-two">while True:</span>
+          <span class="float-code code-three">break</span>
+        </div>
+        <div class="intro-copy">
+          <p class="eyebrow">ІНТЕРАКТИВНА МІСІЯ · 8 КЛАС</p>
+          <h1>Таємниця<br><em>циклу while</em></h1>
+          <p class="lead">Комп'ютерна система «Кодекс» заблокована. Пройди п'ять локацій, опануй цикли та віднови головний комп'ютер!</p>
+          <div class="intro-pills"><span>🐍 Python</span><span>🧩 6 випробувань</span><span>📱 Можна з телефона</span></div>
+          <button class="primary-btn big" id="startBtn">Почати пригоду <span>→</span></button>
+          <p class="tiny-note">Орієнтовний час проходження: 15–20 хвилин</p>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen game-screen">
+        <aside class="map-panel">
+          <div class="map-heading"><span>МАРШРУТ МІСІЇ</span><b id="mapProgress">0/6</b></div>
+          <div class="map-track">
+            <button class="map-stop current" data-level="0"><span>01</span><i>🔁</i><small>Лабораторія</small></button>
+            <div class="track-line"></div>
+            <button class="map-stop locked" data-level="1"><span>02</span><i>🔎</i><small>Передбачення</small></button>
+            <div class="track-line"></div>
+            <button class="map-stop locked" data-level="2"><span>03</span><i>🛑</i><small>Лабіринт break</small></button>
+            <div class="track-line"></div>
+            <button class="map-stop locked" data-level="3"><span>04</span><i>⏭️</i><small>Сектор continue</small></button>
+            <div class="track-line"></div>
+            <button class="map-stop locked" data-level="4"><span>05</span><i>🧰</i><small>Майстерня</small></button>
+            <div class="track-line"></div>
+            <button class="map-stop locked final-stop" data-level="5"><span>06</span><i>🔐</i><small>Фінальна місія</small></button>
+          </div>
+          <div class="map-tip"><span>🤖</span><p><b>Порада Byte</b><br>Читай код уважно. Перевіряй умову циклу перед кожним повторенням.</p></div>
+        </aside>
+
+        <section class="mission-panel">
+          <div class="mission-header">
+            <div><p class="eyebrow" id="levelEyebrow">ЛОКАЦІЯ 01 · НАВЧАННЯ</p><h2 id="levelTitle">Лабораторія повторень</h2></div>
+            <div class="level-glyph" id="levelGlyph">🔁</div>
+          </div>
+          <div class="story-card">
+            <div class="byte-avatar">🤖</div>
+            <div><b>Byte</b><p id="storyText">Вітаю, програмісте! Система «Кодекс» потребує твоєї допомоги.</p></div>
+          </div>
+          <div id="levelContent" class="level-content"></div>
+          <div class="mission-footer">
+            <span id="feedback" class="feedback" aria-live="polite">Обери відповідь, щоб продовжити.</span>
+            <button class="primary-btn" id="checkBtn">Перевірити <span>✓</span></button>
+          </div>
+        </section>
+      </section>
+
+      <section id="resultScreen" class="screen result-screen">
+        <div class="result-orb">🏆</div>
+        <p class="eyebrow">СИСТЕМУ ВІДНОВЛЕНО</p>
+        <h1>Місію виконано!</h1>
+        <p class="lead">Ти допоміг Byte повернути «Кодекс» до роботи.</p>
+        <div class="score-card">
+          <span>ТВІЙ РЕЗУЛЬТАТ</span>
+          <strong><b id="finalScore">0</b><small> / 20 балів</small></strong>
+          <div class="score-bar"><i id="scoreBar"></i></div>
+          <p id="resultMessage">Чудова робота!</p>
+        </div>
+        <div class="result-badges" id="resultBadges"></div>
+        <button class="primary-btn big" id="restartBtn">Пройти ще раз ↻</button>
+      </section>
+    </main>
+    <footer><span>КОДЕКС · Python while</span><span>Створено для навчання 💙</span></footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
