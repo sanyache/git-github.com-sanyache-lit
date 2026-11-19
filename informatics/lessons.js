@@ -73,6 +73,13 @@ window.LESSONS = {
       title: "Масив під лупою",
       desc: "push_back, pop_back, push_front, pop_front, insert, erase: скільки елементів зсувається і чому O(1) або O(n).",
       file: "cpp/visual/array-methods.html"
+    },
+    {
+      id: "cpp-sparse-table",
+      type: "visual",
+      title: "Sparse table простою мовою",
+      desc: "Максимум на відрізку за O(1): чому не працюють префікси, перекриття блоків, довжини 1, 2, 4, 8…, побудова таблиці й код на C++.",
+      file: "cpp/visual/sparse-table.html"
     }
   ]
 };

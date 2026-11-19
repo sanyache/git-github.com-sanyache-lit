@@ -1,0 +1,541 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Sparse table простою мовою</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: одна навчальна колонка ~720px, малюнки на всю ширину колонки, кожен розділ = один крок міркування */
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --fg: #1a1f2e;
+  --muted: #5b6377;
+  --line: #cfd5e2;
+  --tint: #e8ecf5;
+  --a: #2d6bd6;  --a-soft: #d8e5fb;
+  --b: #d9731a;  --b-soft: #fbe3cc;
+  --ab: #7d4fd0; --ab-soft: #e6dcfa;
+  --ok: #23905a; --ok-soft: #d4f0e0;
+  --bad: #cf3737; --bad-soft: #f9d9d9;
+  --code-bg: #eef1f7;
+  --f-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --f-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141c; --surface: #1a1f2b; --fg: #e5e8f0; --muted: #9aa2b6; --line: #343c4e; --tint: #252c3b;
+    --a: #6f9ff2; --a-soft: #1e3053; --b: #f2a35a; --b-soft: #47321d; --ab: #b392f3; --ab-soft: #35284f;
+    --ok: #5cc68b; --ok-soft: #1c3a2a; --bad: #f27474; --bad-soft: #4a2327; --code-bg: #1f2533;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141c; --surface: #1a1f2b; --fg: #e5e8f0; --muted: #9aa2b6; --line: #343c4e; --tint: #252c3b;
+  --a: #6f9ff2; --a-soft: #1e3053; --b: #f2a35a; --b-soft: #47321d; --ab: #b392f3; --ab-soft: #35284f;
+  --ok: #5cc68b; --ok-soft: #1c3a2a; --bad: #f27474; --bad-soft: #4a2327; --code-bg: #1f2533;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--f-body); font-size: 17px; line-height: 1.65;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 80px;
+}
+main { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.25; margin: 0; }
+h1 { font-size: clamp(28px, 6vw, 42px); font-weight: 700; }
+h2 { font-size: clamp(21px, 4vw, 26px); font-weight: 500; }
+h3 { font-size: 17px; font-weight: 500; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--f-mono); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lead { font-size: 19px; color: var(--muted); }
+.step { font-family: var(--f-mono); font-size: 13px; color: var(--a); letter-spacing: .06em; text-transform: uppercase; }
+code, .m { font-family: var(--f-mono); font-size: .9em; }
+p code, li code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+
+figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+figure .scroll { overflow-x: auto; }
+figure svg { display: block; width: 100%; height: auto; }
+figcaption { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.wide svg { min-width: 560px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+
+.callout { border-left: 4px solid var(--bad); background: var(--bad-soft); padding: 14px 18px; border-radius: 0 10px 10px 0; }
+.callout.good { border-color: var(--ok); background: var(--ok-soft); }
+.callout.note { border-color: var(--a); background: var(--a-soft); }
+.callout p + p { margin-top: 8px; }
+
+.verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .verdicts { grid-template-columns: 1fr; } }
+.verdict { border-radius: 10px; padding: 12px 14px; font-size: 15px; line-height: 1.5; }
+.verdict b { display: block; font-family: var(--f-display); font-weight: 500; font-size: 15px; margin-bottom: 4px; }
+.verdict.bad { background: var(--bad-soft); }
+.verdict.ok { background: var(--ok-soft); }
+
+.formula { font-family: var(--f-mono); font-size: 15px; background: var(--code-bg); border-radius: 8px; padding: 12px 14px; overflow-x: auto; white-space: pre; line-height: 1.6; }
+
+pre.code { margin: 0; font-family: var(--f-mono); font-size: 14px; line-height: 1.6; background: var(--code-bg); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+.code .cm { color: var(--muted); }
+.code .kw { color: var(--a); }
+
+/* SVG */
+svg text { font-family: var(--f-mono); }
+.c rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+.c text { fill: var(--fg); font-size: 16px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.c.in rect { fill: var(--tint); stroke: var(--fg); }
+.c.ca rect { fill: var(--a-soft); stroke: var(--a); }
+.c.cb rect { fill: var(--b-soft); stroke: var(--b); }
+.c.cab rect { fill: var(--ab-soft); stroke: var(--ab); }
+.c.cbad rect { fill: var(--bad-soft); stroke: var(--bad); }
+.c.dim rect { fill: var(--bg); stroke: var(--line); stroke-dasharray: 3 3; }
+.c.dim text { fill: var(--muted); font-weight: 400; }
+.c.win rect { stroke: var(--bad); stroke-width: 3; }
+.c.click { cursor: pointer; }
+.c.click:focus { outline: none; }
+.c.click:focus rect { stroke: var(--ab); stroke-width: 3; }
+.idx { fill: var(--muted); font-size: 11px; text-anchor: middle; dominant-baseline: central; }
+.lbl { fill: var(--muted); font-family: var(--f-body) !important; font-size: 13px; text-anchor: end; dominant-baseline: central; }
+.note-t { fill: var(--fg); font-size: 13px; dominant-baseline: central; }
+.note-t.bad { fill: var(--bad); font-weight: 600; }
+.note-t.ok { fill: var(--ok); font-weight: 600; }
+.bar rect { stroke-width: 1.5; }
+.bar.a rect { fill: var(--a-soft); stroke: var(--a); }
+.bar.b rect { fill: var(--b-soft); stroke: var(--b); }
+.bar.ok rect { fill: var(--ok-soft); stroke: var(--ok); }
+.bar.bad rect { fill: var(--bad-soft); stroke: var(--bad); stroke-dasharray: 4 3; }
+.bar text { fill: var(--fg); font-size: 12px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.brk { fill: none; stroke: var(--fg); stroke-width: 1.5; }
+.ttl { fill: var(--fg); font-family: var(--f-body) !important; font-size: 14px; font-weight: 600; dominant-baseline: central; }
+
+/* playground */
+.controls { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; }
+.controls label { display: flex; align-items: center; gap: 10px; font-family: var(--f-mono); font-size: 15px; }
+.controls input[type=range] { width: 180px; accent-color: var(--a); }
+.out { font-family: var(--f-mono); font-size: 15px; line-height: 1.8; background: var(--code-bg); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+.out .a { color: var(--a); font-weight: 600; }
+.out .b { color: var(--b); font-weight: 600; }
+.out .ok { color: var(--ok); font-weight: 600; }
+
+.summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 600px) { .summary { grid-template-columns: 1fr; } }
+.summary div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.summary .k { font-size: 13px; color: var(--muted); }
+.summary .v { font-family: var(--f-mono); font-size: 22px; font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; border: 1.5px solid; }
+.legend .la::before { background: var(--a-soft); border-color: var(--a); }
+.legend .lb::before { background: var(--b-soft); border-color: var(--b); }
+.legend .lab::before { background: var(--ab-soft); border-color: var(--ab); }
+.legend .lbad::before { background: var(--bad-soft); border-color: var(--bad); }
+@media (prefers-reduced-motion: no-preference) { .c rect { transition: fill .15s, stroke .15s; } }
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <div class="eyebrow">Алгоритми · запити на відрізках</div>
+    <h1>Sparse table простою мовою</h1>
+    <p class="lead">Як знайти максимум на будь-якому відрізку масиву миттєво, за O(1). І чому для цього зберігають саме відрізки довжиною 1, 2, 4, 8, 16…</p>
+  </header>
+
+  <!-- 1 -->
+  <section>
+    <div class="step">Крок 1 · Задача</div>
+    <h2>Багато запитів «який найбільший елемент від L до R?»</h2>
+    <p>Маємо масив, який не змінюється. Нам ставлять дуже багато запитів: «знайди максимум серед елементів з номерами від <code>L</code> до <code>R</code>». Якщо щоразу проходити циклом, один запит коштує до <code>n</code> кроків. Для 100 000 елементів і 100 000 запитів це 10 мільярдів операцій. Задовго.</p>
+    <figure>
+      <svg id="f-task" viewBox="0 0 400 118" role="img" aria-label="Масив 5 2 6 1 3 8 4 7, виділено відрізок з 1 по 6, максимум 8"></svg>
+      <figcaption>Масив, з яким працюватимемо далі. Номери (індекси) зверху, починаємо з нуля. Запит <code>[1, 6]</code>: найбільше серед 2, 6, 1, 3, 8, 4 — це 8.</figcaption>
+    </figure>
+    <p>Хочеться один раз підготуватися (порахувати якусь таблицю), а потім відповідати на кожен запит за кілька дій.</p>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <div class="step">Крок 2 · Перша ідея</div>
+    <h2>Для сум є чудовий трюк: префіксні суми</h2>
+    <p>Якщо треба було б шукати <b>суму</b> на відрізку, ми б порахували масив <code>P</code>, де <code>P[i]</code> — сума всіх елементів від початку до <code>i</code>. Тоді сума на відрізку <code>[L, R]</code> — це «сума до R» мінус «сума до L−1»:</p>
+    <div class="formula">сума[L..R] = P[R] − P[L−1]</div>
+    <figure>
+      <svg id="f-sum" viewBox="0 0 420 170" role="img" aria-label="Сума на відрізку 3..4 як різниця P[4] і P[2]"></svg>
+      <figcaption>Шукаємо суму на <code>[3, 4]</code>. Беремо довгу смужку від 0 до 4 (сума 17) і відрізаємо зайвий початок від 0 до 2 (сума 13). Залишок 17 − 13 = 4. Перевірка: 1 + 3 = 4.</figcaption>
+    </figure>
+    <p>Трюк працює, бо віднімання <b>скасовує</b> додавання. Ми знаємо, скільки «додав» зайвий початок, і просто забираємо це назад.</p>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <div class="step">Крок 3 · Головна пастка</div>
+    <h2>Чому з максимумом так не вийде</h2>
+    <p>Спробуємо те саме: нехай <code>PM[i]</code> — максимум від початку до <code>i</code>. Для нашого масиву <code>PM = [5, 5, 6, 6, 6, 8, 8, 8]</code>. Тепер подивімося на два різні запити.</p>
+    <div class="pair">
+      <figure>
+        <svg id="f-max1" viewBox="0 0 420 175" role="img" aria-label="Запит 3..4: PM[4]=6, PM[2]=6, правильна відповідь 3"></svg>
+        <figcaption>Запит <code>[3, 4]</code>. Бачимо числа 6 і 6. Правильна відповідь: <b>3</b>.</figcaption>
+      </figure>
+      <figure>
+        <svg id="f-max2" viewBox="0 0 420 175" role="img" aria-label="Запит 3..3: PM[3]=6, PM[2]=6, правильна відповідь 1"></svg>
+        <figcaption>Запит <code>[3, 3]</code>. Бачимо ті самі 6 і 6. Правильна відповідь: <b>1</b>.</figcaption>
+      </figure>
+    </div>
+    <div class="callout">
+      <p><b>Ось і доказ.</b> В обох запитах префіксний масив дає нам однакові числа: 6 і 6. А відповіді різні: 3 і 1. Отже, не існує жодної формули, яка з чисел 6 і 6 отримала б правильну відповідь в обох випадках. Віднімати, ділити, щось хитре робити марно: потрібної інформації в цих числах просто немає.</p>
+    </div>
+    <p><b>Куди зникла інформація?</b> Число <code>PM[i]</code> пам'ятає лише <b>переможця</b>, а про всіх інших забуває. На малюнку переможець обох смужок той самий: шістка на позиції 2 (обведена червоним). Вона лежить саме в тій частині, яку ми хочемо відрізати. Коли ми її «викидаємо», дізнатися, хто був другим, уже неможливо.</p>
+    <div class="callout note">
+      <p><b>Аналогія з забігом.</b> Сума схожа на гроші в гаманці: знаєш, скільки було разом і скільки витратив, то знаєш, скільки лишилось. Максимум схожий на результат забігу: ти знаєш, хто переміг серед усіх бігунів, і хто переміг серед перших трьох. Якщо це та сама людина, ти нічого не знаєш про те, хто найшвидший серед решти.</p>
+    </div>
+    <p>Математично: для додавання є обернена дія (віднімання), а для максимуму оберненої дії немає. Тому «відрізати шматок» від максимуму не можна. Можна лише <b>склеювати</b> шматки.</p>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <div class="step">Крок 4 · Рятівна властивість</div>
+    <h2>Зате максимум не боїться перекриття</h2>
+    <p>Раз відрізати не можна, будемо складати відповідь з готових шматків. І тут у максимуму є суперсила, якої немає у суми: якщо шматки <b>перекриваються</b>, нічого страшного. Елемент, порахований двічі, не стає більшим: <code>max(x, x) = x</code>.</p>
+    <figure>
+      <div class="scroll"><svg id="f-overlap" viewBox="0 0 470 150" role="img" aria-label="Відрізок 1..6 покрито двома шматками 1..4 і 3..6, що перекриваються в 3..4"></svg></div>
+      <figcaption>Відрізок <code>[1, 6]</code> покрито двома шматками по 4 елементи: синій <code>[1, 4]</code> і помаранчевий <code>[3, 6]</code>. Клітинки 3 і 4 (фіолетові) потрапили в обидва.</figcaption>
+    </figure>
+    <div class="verdicts">
+      <div class="verdict bad"><b>Сума ✗</b>12 + 16 = 28, а правильна сума 24. Клітинки 3 і 4 пораховано двічі, зайві 1 + 3 = 4.</div>
+      <div class="verdict ok"><b>Максимум ✓</b>max(6, 8) = 8. Правильно! Повторно побачена одиниця чи трійка на відповідь не впливає.</div>
+    </div>
+    <p>Висновок: якщо ми заздалегідь знаємо максимуми деяких відрізків, то відповідь на запит — це максимум з <b>двох</b> таких відрізків, які разом накривають <code>[L, R]</code> і не виходять за його межі. Перекриватися вони можуть як завгодно.</p>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <div class="step">Крок 5 · Що запам'ятати</div>
+    <h2>Чому саме довжини 1, 2, 4, 8…</h2>
+    <p>Можна було б запам'ятати максимуми <b>всіх</b> відрізків. Але для <code>n = 100 000</code> це приблизно 5 мільярдів чисел. Не влізе в пам'ять. Потрібен невеликий набір відрізків, з якого будь-який запит складається з двох штук.</p>
+    <p>Sparse table зберігає для кожної позиції <code>i</code> відрізки довжиною 1, 2, 4, 8, … (степені двійки), що починаються в <code>i</code>. Подивимось, чому цього завжди вистачає.</p>
+    <p>Нехай довжина запиту <code>len = R − L + 1</code>. Візьмемо найбільший степінь двійки, який не перевищує <code>len</code>. Позначимо його <code>2<sup>k</sup></code>. Тоді:</p>
+    <div class="formula">2^k  ≤  len  &lt;  2·2^k</div>
+    <ul>
+      <li><b>Ліва нерівність</b> (2<sup>k</sup> ≤ len) означає, що один блок не довший за запит. Отже блок, що починається в <code>L</code>, і блок, що закінчується в <code>R</code>, не вилазять за межі відрізка.</li>
+      <li><b>Права нерівність</b> (len &lt; 2·2<sup>k</sup>) означає, що два блоки разом довші за запит. Отже вони гарантовано накривають його повністю, без дірок посередині.</li>
+    </ul>
+    <figure>
+      <div class="scroll"><svg id="f-cover" viewBox="0 0 485 250" role="img" aria-label="Покриття відрізків довжини 3..8 двома блоками довжини степеня двійки"></svg></div>
+      <div class="legend"><span class="la">лівий блок (від L)</span><span class="lb">правий блок (до R)</span><span class="lab">обидва</span></div>
+      <figcaption>Для кожної довжини від 3 до 8 два однакові блоки довжиною 2<sup>k</sup> накривають відрізок повністю і жодного разу не виходять за його межі.</figcaption>
+    </figure>
+    <p><b>А чому не інші довжини?</b> Ключ у тому, що сусідні збережені довжини відрізняються рівно вдвічі. Подивимось, що буде, якщо порушити правило.</p>
+    <figure>
+      <div class="scroll"><svg id="f-fail" viewBox="0 0 485 140" role="img" aria-label="Приклади невдалого вибору довжин блоків"></svg></div>
+      <div class="legend"><span class="la">лівий блок</span><span class="lb">правий блок</span><span class="lbad">помилка</span></div>
+      <figcaption>Верхній рядок: якби ми зберігали довжини 1, 3, 9 (степені трійки), для запиту довжиною 8 найбільший блок має довжину 3, і двох таких блоків не вистачає: посередині дірка. Нижній рядок: блок, довший за запит (8 для довжини 6), захоплює чужі елементи і може дати неправильний максимум.</figcaption>
+    </figure>
+    <div class="callout good">
+      <p><b>Скільки це пам'яті?</b> Різних степенів двійки до <code>n</code> всього близько <code>log₂ n</code>. Для 100 000 це 17. Тож таблиця має приблизно <code>n · log₂ n ≈ 1,7 млн</code> чисел замість 5 мільярдів. Звідси назва «розріджена» (sparse): зберігаємо не всі відрізки, а лише «рідкісні», але цього достатньо.</p>
+      <p>Є ще один бонус: блок довжиною 2<sup>k</sup> рівно ділиться на дві половинки довжиною 2<sup>k−1</sup>. Тому таблицю легко будувати, про це наступний крок.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section>
+    <div class="step">Крок 6 · Побудова</div>
+    <h2>Будуємо таблицю знизу вгору</h2>
+    <p>Позначимо <code>st[k][i]</code> — максимум на відрізку довжиною 2<sup>k</sup>, що починається в позиції <code>i</code> (тобто від <code>i</code> до <code>i + 2<sup>k</sup> − 1</code>).</p>
+    <ul>
+      <li>Рядок <code>k = 0</code>: відрізки довжиною 1, тож <code>st[0][i] = a[i]</code>.</li>
+      <li>Кожен наступний рядок: блок довжиною 2<sup>k</sup> складається з двох половинок довжиною 2<sup>k−1</sup>, а їхні максимуми вже пораховано в попередньому рядку.</li>
+    </ul>
+    <div class="formula">st[k][i] = max( st[k−1][i],  st[k−1][i + 2^(k−1)] )</div>
+    <figure>
+      <div class="scroll"><svg id="f-table" viewBox="0 0 470 268" role="img" aria-label="Таблиця sparse table для масиву 5 2 6 1 3 8 4 7"></svg></div>
+      <figcaption id="table-cap">Натисніть на будь-яку клітинку таблиці. Фіолетова — обрана клітинка, синя і помаранчева — дві половинки, з яких вона порахована. У масиві зверху видно, які елементи вона покриває. Порожні сірі клітинки не існують: блок вийшов би за край масиву.</figcaption>
+      <div class="out" id="table-out"></div>
+    </figure>
+  </section>
+
+  <!-- 7 -->
+  <section>
+    <div class="step">Крок 7 · Запит</div>
+    <h2>Відповідь на запит за дві дії</h2>
+    <p>Для запиту <code>[L, R]</code>:</p>
+    <div class="formula">len = R − L + 1
+k   = найбільше число, для якого 2^k ≤ len
+відповідь = max( st[k][L],  st[k][R − 2^k + 1] )</div>
+    <p>Перший блок починається в <code>L</code>, другий закінчується в <code>R</code> (тому він починається в <code>R − 2<sup>k</sup> + 1</code>). Спробуйте самі на більшому масиві:</p>
+    <figure>
+      <div class="controls">
+        <label for="inL">L = <input type="range" id="inL" min="0" max="15" value="2"><span id="vL">2</span></label>
+        <label for="inR">R = <input type="range" id="inR" min="0" max="15" value="12"><span id="vR">12</span></label>
+      </div>
+      <div class="scroll wide"><svg id="f-play" viewBox="0 0 680 150" role="img" aria-label="Інтерактивний запит"></svg></div>
+      <div class="out" id="play-out"></div>
+    </figure>
+    <p>Щоб не шукати <code>k</code> циклом, заздалегідь рахують масив <code>lg[len]</code> (двійковий логарифм, округлений вниз): <code>lg[1] = 0</code>, <code>lg[i] = lg[i / 2] + 1</code>.</p>
+  </section>
+
+  <!-- 8 -->
+  <section>
+    <div class="step">Крок 8 · Код</div>
+    <h2>Реалізація на C++</h2>
+<pre class="code"><span class="kw">const int</span> MAXN = 100000, LOG = 17;
+<span class="kw">int</span> st[LOG + 1][MAXN];   <span class="cm">// st[k][i] = max на [i, i + 2^k - 1]</span>
+<span class="kw">int</span> lg[MAXN + 1];        <span class="cm">// lg[x] = найбільше k, що 2^k &lt;= x</span>
+
+<span class="kw">void</span> build(<span class="kw">const</span> vector&lt;<span class="kw">int</span>&gt;&amp; a) {
+    <span class="kw">int</span> n = a.size();
+    lg[1] = 0;
+    <span class="kw">for</span> (<span class="kw">int</span> i = 2; i &lt;= n; i++) lg[i] = lg[i / 2] + 1;
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = 0; i &lt; n; i++) st[0][i] = a[i];          <span class="cm">// довжина 1</span>
+    <span class="kw">for</span> (<span class="kw">int</span> k = 1; (1 &lt;&lt; k) &lt;= n; k++)                   <span class="cm">// довжина 2^k</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = 0; i + (1 &lt;&lt; k) &lt;= n; i++)            <span class="cm">// блок не виходить за край</span>
+            st[k][i] = max(st[k - 1][i],                       <span class="cm">// ліва половинка</span>
+                           st[k - 1][i + (1 &lt;&lt; (k - 1))]);     <span class="cm">// права половинка</span>
+}
+
+<span class="kw">int</span> query(<span class="kw">int</span> L, <span class="kw">int</span> R) {                             <span class="cm">// L і R включно</span>
+    <span class="kw">int</span> k = lg[R - L + 1];
+    <span class="kw">return</span> max(st[k][L], st[k][R - (1 &lt;&lt; k) + 1]);       <span class="cm">// два блоки, можуть перекриватись</span>
+}</pre>
+  </section>
+
+  <!-- 9 -->
+  <section>
+    <div class="step">Підсумок</div>
+    <h2>Що треба запам'ятати</h2>
+    <div class="summary">
+      <div><div class="k">Побудова</div><div class="v">O(n log n)</div></div>
+      <div><div class="k">Один запит</div><div class="v">O(1)</div></div>
+      <div><div class="k">Пам'ять</div><div class="v">O(n log n)</div></div>
+    </div>
+    <ul>
+      <li>Префіксний трюк потребує віднімання. У максимуму немає оберненої дії, тому «відрізати» початок не можна.</li>
+      <li>Натомість максимум не псується від перекриття: <code>max(x, x) = x</code>. Тому запит можна накрити двома блоками, які перекриваються.</li>
+      <li>Довжини-степені двійки гарантують, що два однакові блоки завжди накриють відрізок і не вийдуть за його межі, а таких довжин лише <code>log n</code>.</li>
+      <li>Так само працюють <b>min</b>, <b>НСД (gcd)</b>, побітові <b>AND</b> і <b>OR</b>: для всіх них повтор елемента нічого не змінює. Для <b>суми</b> sparse table з двома блоками не підходить, там краще префіксні суми.</li>
+      <li>Масив має бути незмінним. Якщо елементи змінюються між запитами, потрібне дерево відрізків.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, cls, extra) {
+    var a = { x: x, y: y, 'class': cls || 'note-t' };
+    if (extra) for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  // draw a row of cells
+  function cells(svg, vals, x0, y, C, clsFn, showIdx) {
+    var gs = [];
+    vals.forEach(function (v, i) {
+      var g = el('g', { 'class': 'c ' + (clsFn ? clsFn(i) : '') }, svg);
+      el('rect', { x: x0 + i * C + 1, y: y, width: C - 2, height: C - 2, rx: 6 }, g);
+      txt(g, x0 + i * C + C / 2, y + C / 2 - 1, v === null ? '' : String(v), '');
+      if (showIdx) txt(svg, x0 + i * C + C / 2, y - 10, String(i), 'idx');
+      gs.push(g);
+    });
+    return gs;
+  }
+  function bar(svg, x0, C, i0, i1, y, cls, inner, right, rightCls) {
+    var g = el('g', { 'class': 'bar ' + cls }, svg);
+    var x = x0 + i0 * C + 1, w = (i1 - i0 + 1) * C - 2;
+    el('rect', { x: x, y: y, width: w, height: 22, rx: 5 }, g);
+    if (inner) txt(g, x + w / 2, y + 11, inner, '');
+    if (right) txt(svg, x + w + 10, y + 11, right, 'note-t ' + (rightCls || ''));
+  }
+  function bracket(svg, x1, x2, y) {
+    el('path', { d: 'M' + x1 + ' ' + y + ' v8 H' + x2 + ' v-8', 'class': 'brk' }, svg);
+  }
+
+  var A = [5, 2, 6, 1, 3, 8, 4, 7];
+
+  // Fig 1: task
+  (function () {
+    var s = document.getElementById('f-task'), x0 = 40, C = 40;
+    cells(s, A, x0, 24, C, function (i) { return i >= 1 && i <= 6 ? 'in' : ''; }, true);
+    bracket(s, x0 + 1 * C + 2, x0 + 7 * C - 2, 70);
+    txt(s, x0 + 4 * C, 98, 'max на [1, 6] = 8', 'ttl', { 'text-anchor': 'middle' });
+    txt(s, x0 - 12, 43, 'a', 'lbl');
+  })();
+
+  // Fig 2: prefix sums
+  (function () {
+    var s = document.getElementById('f-sum'), x0 = 40, C = 40;
+    cells(s, A, x0, 24, C, function (i) { return i >= 3 && i <= 4 ? 'in' : ''; }, true);
+    txt(s, x0 - 12, 43, 'a', 'lbl');
+    bar(s, x0, C, 0, 4, 76, 'a', '', 'P[4] = 17');
+    bar(s, x0, C, 0, 2, 106, 'b', 'відрізаємо', 'P[2] = 13');
+    bar(s, x0, C, 3, 4, 136, 'ok', '', '17 − 13 = 4 ✓', 'ok');
+  })();
+
+  // Fig 3: prefix max fails
+  function maxFig(id, L, R, answer) {
+    var s = document.getElementById(id), x0 = 40, C = 40;
+    cells(s, A, x0, 24, C, function (i) {
+      var c = (i >= L && i <= R) ? 'in' : '';
+      return c + (i === 2 ? ' win' : '');
+    }, true);
+    txt(s, x0 - 12, 43, 'a', 'lbl');
+    bar(s, x0, C, 0, R, 76, 'a', '', 'PM[' + R + '] = 6');
+    bar(s, x0, C, 0, L - 1, 106, 'b', 'відрізаємо', 'PM[' + (L - 1) + '] = 6');
+    bar(s, x0, C, L, R, 136, 'bad', '?', 'правильно: ' + answer, 'bad');
+  }
+  maxFig('f-max1', 3, 4, '3');
+  maxFig('f-max2', 3, 3, '1');
+
+  // Fig 4: overlap
+  (function () {
+    var s = document.getElementById('f-overlap'), x0 = 40, C = 40;
+    cells(s, A, x0, 24, C, function (i) {
+      if (i >= 3 && i <= 4) return 'cab';
+      if (i >= 1 && i <= 2) return 'ca';
+      if (i >= 5 && i <= 6) return 'cb';
+      return '';
+    }, true);
+    txt(s, x0 - 12, 43, 'a', 'lbl');
+    bar(s, x0, C, 1, 4, 76, 'a', '[1, 4]', 'max 6 · сума 12');
+    bar(s, x0, C, 3, 6, 106, 'b', '[3, 6]', 'max 8 · сума 16');
+  })();
+
+  // Fig 5: covering with powers of two
+  (function () {
+    var s = document.getElementById('f-cover'), x0 = 235, C = 30;
+    var lens = [3, 4, 5, 6, 7, 8];
+    lens.forEach(function (len, r) {
+      var y = 10 + r * 40;
+      var k = Math.floor(Math.log2(len)), p = 1 << k;
+      var vals = []; for (var i = 0; i < len; i++) vals.push(null);
+      cells(s, vals, x0, y, C, function (i) {
+        var inA = i < p, inB = i >= len - p;
+        return inA && inB ? 'cab' : inA ? 'ca' : 'cb';
+      }, false);
+      txt(s, x0 - 14, y + C / 2 - 1, 'довжина ' + len + ' → два блоки по ' + p, 'lbl');
+    });
+  })();
+
+  // Fig 6: failures
+  (function () {
+    var s = document.getElementById('f-fail'), x0 = 235, C = 30;
+    var v = []; for (var i = 0; i < 8; i++) v.push(null);
+    cells(s, v, x0, 14, C, function (i) { return i < 3 ? 'ca' : i >= 5 ? 'cb' : 'cbad'; }, false);
+    txt(s, x0 - 14, 14 + C / 2 - 1, 'степені 3: довжина 8, блоки по 3', 'lbl');
+    txt(s, x0 + 4 * C, 14 + C + 14, 'дірка!', 'note-t bad', { 'text-anchor': 'middle' });
+
+    var w = []; for (var j = 0; j < 8; j++) w.push(null);
+    cells(s, w, x0, 84, C, function (i) { return i < 6 ? 'ca' : 'cbad'; }, false);
+    txt(s, x0 - 14, 84 + C / 2 - 1, 'довжина 6, блок 8', 'lbl');
+    txt(s, x0 + 7 * C, 84 + C + 14, 'чужі елементи', 'note-t bad', { 'text-anchor': 'middle' });
+    bracket(s, x0 + 2, x0 + 6 * C - 2, 84 + C + 2);
+  })();
+
+  // Fig 7: table
+  var st = [];
+  function buildST(a) {
+    var t = [a.slice()];
+    for (var k = 1; (1 << k) <= a.length; k++) {
+      var row = [];
+      for (var i = 0; i + (1 << k) <= a.length; i++)
+        row.push(Math.max(t[k - 1][i], t[k - 1][i + (1 << (k - 1))]));
+      t.push(row);
+    }
+    return t;
+  }
+  st = buildST(A);
+  var sel = { k: 2, i: 1 };
+  function drawTable() {
+    var s = document.getElementById('f-table'), x0 = 130, C = 40;
+    s.innerHTML = '';
+    var k = sel.k, i = sel.i, len = 1 << k, half = len >> 1;
+    cells(s, A, x0, 24, C, function (j) {
+      if (j < i || j >= i + len) return '';
+      if (k === 0) return 'cab';
+      return j < i + half ? 'ca' : 'cb';
+    }, true);
+    txt(s, x0 - 14, 43, 'масив a', 'lbl');
+    for (var kk = 0; kk < st.length; kk++) {
+      var y = 96 + kk * 42;
+      var vals = [];
+      for (var j = 0; j < A.length; j++) vals.push(j < st[kk].length ? st[kk][j] : null);
+      var gs = cells(s, vals, x0, y, C, function (j) {
+        if (j >= st[kk].length) return 'dim';
+        var c = 'click';
+        if (kk === k && j === i) c += ' cab';
+        else if (k > 0 && kk === k - 1 && j === i) c += ' ca';
+        else if (k > 0 && kk === k - 1 && j === i + half) c += ' cb';
+        return c;
+      }, false);
+      gs.forEach(function (g, j) {
+        if (j >= st[kk].length) return;
+        g.setAttribute('tabindex', '0');
+        g.setAttribute('role', 'button');
+        g.setAttribute('aria-label', 'st[' + kk + '][' + j + '] = ' + st[kk][j]);
+        (function (kk2, j2) {
+          g.addEventListener('click', function () { sel = { k: kk2, i: j2 }; drawTable(); focusSel(); });
+          g.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sel = { k: kk2, i: j2 }; drawTable(); focusSel(); }
+          });
+        })(kk, j);
+      });
+      txt(s, x0 - 14, y + C / 2 - 1, 'k=' + kk + ' (довж. ' + (1 << kk) + ')', 'lbl');
+    }
+    txt(s, x0 + 4 * C, 82, 'таблиця st[k][i]   (i — стовпчик)', 'idx');
+    var out = document.getElementById('table-out');
+    var range = '[' + i + ', ' + (i + len - 1) + ']';
+    if (k === 0) {
+      out.innerHTML = 'st[0][' + i + '] = a[' + i + '] = <span class="ok">' + st[0][i] + '</span>';
+    } else {
+      out.innerHTML = 'st[' + k + '][' + i + '] — максимум на ' + range + '<br>= max( <span class="a">st[' + (k - 1) + '][' + i + '] = ' + st[k - 1][i] +
+        '</span>, <span class="b">st[' + (k - 1) + '][' + (i + half) + '] = ' + st[k - 1][i + half] + '</span> ) = <span class="ok">' + st[k][i] + '</span>';
+    }
+  }
+  function focusSel() {
+    var s = document.getElementById('f-table');
+    var g = s.querySelector('[aria-label^="st[' + sel.k + '][' + sel.i + ']"]');
+    if (g && g.focus) try { g.focus({ preventScroll: true }); } catch (e) {}
+  }
+  drawTable();
+
+  // Fig 8: playground
+  var B = [5, 2, 6, 1, 3, 8, 4, 7, 9, 0, 2, 6, 3, 5, 1, 4];
+  var stB = buildST(B);
+  var inL = document.getElementById('inL'), inR = document.getElementById('inR');
+  function play(changed) {
+    var L = +inL.value, R = +inR.value;
+    if (L > R) { if (changed === 'L') { R = L; inR.value = R; } else { L = R; inL.value = L; } }
+    document.getElementById('vL').textContent = L;
+    document.getElementById('vR').textContent = R;
+    var len = R - L + 1, k = Math.floor(Math.log2(len)), p = 1 << k, sB = R - p + 1;
+    var s = document.getElementById('f-play'), x0 = 20, C = 40;
+    s.innerHTML = '';
+    cells(s, B, x0, 24, C, function (i) {
+      var inA = i >= L && i < L + p, inB2 = i >= sB && i <= R;
+      return inA && inB2 ? 'cab' : inA ? 'ca' : inB2 ? 'cb' : '';
+    }, true);
+    bar(s, x0, C, L, L + p - 1, 78, 'a', 'st[' + k + '][' + L + ']');
+    bar(s, x0, C, sB, R, 108, 'b', 'st[' + k + '][' + sB + ']');
+    var va = stB[k][L], vb = stB[k][sB], ans = Math.max(va, vb);
+    var check = Math.max.apply(null, B.slice(L, R + 1));
+    document.getElementById('play-out').innerHTML =
+      'len = ' + R + ' − ' + L + ' + 1 = ' + len + '  →  k = ' + k + ' (2^' + k + ' = ' + p + ' ≤ ' + len + (k + 1 <= 4 ? ' &lt; ' + (2 * p) : '') + ')<br>' +
+      'max( <span class="a">st[' + k + '][' + L + '] = ' + va + '</span>, <span class="b">st[' + k + '][' + R + ' − ' + p + ' + 1 = ' + sB + '] = ' + vb + '</span> ) = <span class="ok">' + ans + '</span>' +
+      '<br><span style="color:var(--muted)">перевірка циклом: ' + check + (check === ans ? ' ✓' : ' ✗') + '</span>';
+  }
+  inL.addEventListener('input', function () { play('L'); });
+  inR.addEventListener('input', function () { play('R'); });
+  play('L');
+})();
+</script>
+
+</body></html>
