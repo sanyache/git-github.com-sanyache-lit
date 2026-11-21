@@ -1,0 +1,458 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Робот і золоті монети</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: two boards (coins A, table val) + explanation, sticky player bar, code panel, problem statement at the end */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#E9EDF2; --fg:#18202C; --muted:#5B6677; --line:#D5DBE3;
+  --gold:#B98309; --gold-hi:#F2C14E; --gold-lo:#D79A12; --coin-fg:#3B2A00;
+  --teal:#0F7A6C; --teal-soft:#D3EEE9; --blue:#2F5FD0; --blue-soft:#DCE6FB;
+  --cur:#B98309; --cur-soft:#FCEFCB;
+  --code-bg:#151B25; --code-fg:#D7DEE8; --code-mute:#6E7A8C; --code-kw:#7FB2FF; --code-num:#F2C14E; --code-fn:#6FD6C2; --code-hl:rgba(242,193,78,.16);
+  --f-display:"Unbounded", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10141B; --surface:#171D27; --surface-2:#202835; --fg:#E6EAF0; --muted:#97A2B3; --line:#2B3443;
+  --gold:#F2C14E; --gold-hi:#F6CF6A; --gold-lo:#C8900E; --coin-fg:#2E2000;
+  --teal:#3FC9B4; --teal-soft:#123A36; --blue:#7FA4F5; --blue-soft:#1C2C4D;
+  --cur:#F2C14E; --cur-soft:#3A2F12;
+  --code-bg:#0B0F15; --code-fg:#D7DEE8; --code-mute:#5E6A7C; --code-kw:#7FB2FF; --code-num:#F2C14E; --code-fn:#6FD6C2; --code-hl:rgba(242,193,78,.14);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#10141B; --surface:#171D27; --surface-2:#202835; --fg:#E6EAF0; --muted:#97A2B3; --line:#2B3443;
+  --gold:#F2C14E; --gold-hi:#F6CF6A; --gold-lo:#C8900E; --coin-fg:#2E2000;
+  --teal:#3FC9B4; --teal-soft:#123A36; --blue:#7FA4F5; --blue-soft:#1C2C4D;
+  --cur:#F2C14E; --cur-soft:#3A2F12;
+  --code-bg:#0B0F15; --code-fg:#D7DEE8; --code-mute:#5E6A7C; --code-kw:#7FB2FF; --code-num:#F2C14E; --code-fn:#6FD6C2; --code-hl:rgba(242,193,78,.14);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--fg); font-family:var(--f-body); font-size:16px; line-height:1.5}
+.wrap{max-width:1120px; margin:0 auto; padding-block:24px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex; flex-direction:column; gap:28px}
+header{display:flex; flex-direction:column; gap:8px}
+.eyebrow{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600}
+h1{font-family:var(--f-display); font-weight:700; font-size:clamp(24px, 5vw, 38px); line-height:1.15; margin:0; text-wrap:balance}
+h1 em{font-style:normal; color:var(--gold)}
+h2{font-family:var(--f-display); font-weight:500; font-size:clamp(18px, 3.5vw, 22px); margin:0; text-wrap:balance}
+.lead{color:var(--muted); max-width:65ch; margin:0}
+.lead code, p code, li code{font-family:var(--f-mono); font-size:.9em; background:var(--surface-2); padding:1px 5px; border-radius:4px}
+
+.stage{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:20px; align-items:start}
+@media (max-width:920px){ .stage{grid-template-columns:minmax(0,1fr)} }
+.left, .right{display:flex; flex-direction:column; gap:16px; min-width:0}
+
+.boards{display:flex; flex-wrap:wrap; gap:16px}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; min-width:0}
+.boardbox{flex:1 1 250px; display:flex; flex-direction:column; gap:10px}
+.boardhead{display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap}
+.boardhead b{font-family:var(--f-mono); font-size:15px}
+.boardhead span{font-size:13px; color:var(--muted)}
+
+.board{display:grid; grid-template-columns:18px minmax(0,1fr); grid-template-rows:auto auto; gap:4px; max-width:360px; width:100%; margin:0 auto}
+.collabels{display:grid; grid-template-columns:repeat(5,1fr); gap:4px}
+.rowlabels{display:grid; grid-template-rows:repeat(5,1fr); gap:4px}
+.collabels div, .rowlabels div{font-family:var(--f-mono); font-size:11px; color:var(--muted); display:flex; align-items:center; justify-content:center}
+.cells{position:relative; display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(5,1fr); gap:4px}
+.cell{aspect-ratio:1; border-radius:8px; background:var(--surface-2); display:flex; align-items:center; justify-content:center;
+  font-family:var(--f-mono); font-weight:600; font-size:clamp(13px, 3.8vw, 18px); font-variant-numeric:tabular-nums;
+  position:relative; transition:background .25s, box-shadow .25s, color .25s; min-width:0}
+
+/* coins */
+.coin{width:74%; height:74%; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--coin-fg);
+  background:radial-gradient(circle at 35% 30%, var(--gold-hi), var(--gold-lo) 75%); box-shadow:inset 0 0 0 2px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.25);
+  transition:opacity .3s, transform .3s}
+.cell.taken .coin{opacity:.28; transform:scale(.8)}
+.cell.path{background:var(--teal-soft)}
+.cell.add{box-shadow:inset 0 0 0 2px var(--cur)}
+
+/* val table */
+.cell.empty{color:var(--muted); font-weight:400}
+.cell.empty::after{content:"·"; opacity:.6}
+.cell.v{background:var(--surface-2)}
+.cell.cur{background:var(--cur-soft); box-shadow:inset 0 0 0 2px var(--cur); color:var(--fg)}
+.cell.src{background:var(--blue-soft); color:var(--blue)}
+.cell.win{box-shadow:inset 0 0 0 2px var(--blue)}
+.cell.vpath{background:var(--teal-soft); color:var(--teal); box-shadow:inset 0 0 0 2px var(--teal)}
+.cell .from{position:absolute; top:2px; right:4px; font-size:10px; color:var(--blue); font-weight:600}
+
+/* robot */
+.robot{position:absolute; width:calc((100% - 16px)/5); height:calc((100% - 16px)/5);
+  left:calc(var(--c) * ((100% - 16px)/5 + 4px)); top:calc(var(--r) * ((100% - 16px)/5 + 4px));
+  border-radius:8px; box-shadow:inset 0 0 0 3px var(--teal); transition:left .4s ease, top .4s ease; pointer-events:none}
+.robot svg{position:absolute; top:-9px; right:-7px; width:26px; height:26px; filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+@media (prefers-reduced-motion:reduce){ .robot, .cell, .coin{transition:none} }
+
+.legend{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:13px; color:var(--muted)}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.sw{width:14px; height:14px; border-radius:4px; display:inline-block}
+.sw.cur{background:var(--cur-soft); box-shadow:inset 0 0 0 2px var(--cur)}
+.sw.src{background:var(--blue-soft)}
+.sw.win{background:var(--blue-soft); box-shadow:inset 0 0 0 2px var(--blue)}
+.sw.path{background:var(--teal-soft); box-shadow:inset 0 0 0 2px var(--teal)}
+
+/* explanation */
+.explain{display:flex; flex-direction:column; gap:10px}
+.explain .top{display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap}
+.stepno{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; font-variant-numeric:tabular-nums}
+.vars{display:flex; gap:6px; flex-wrap:wrap}
+.chip{font-family:var(--f-mono); font-size:12px; padding:2px 8px; border-radius:999px; background:var(--surface-2); color:var(--fg)}
+.chip.gold{background:var(--cur-soft); color:var(--fg); box-shadow:inset 0 0 0 1px var(--cur)}
+#text{margin:0; min-height:3em}
+.formula{font-family:var(--f-mono); font-size:clamp(12px, 3.2vw, 14px); background:var(--surface-2); border-radius:8px; padding:8px 10px; overflow-x:auto; white-space:nowrap}
+.formula:empty{display:none}
+.formula .r{color:var(--gold); font-weight:600}
+
+/* player */
+.player{position:sticky; bottom:0; z-index:5; background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); display:flex; flex-direction:column; gap:8px; box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+.btns{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+button, select{font:inherit; color:var(--fg)}
+.btn{height:44px; min-width:44px; padding:0 12px; border-radius:10px; border:1px solid var(--line); background:var(--surface-2); cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:600; font-size:14px}
+.btn svg{width:18px; height:18px; fill:currentColor}
+.btn.primary{background:var(--teal); border-color:var(--teal); color:var(--surface); min-width:110px}
+.btn:disabled{opacity:.4; cursor:default}
+.btn:focus-visible, select:focus-visible, input:focus-visible{outline:3px solid var(--blue); outline-offset:2px}
+.spacer{flex:1}
+select{height:44px; border-radius:10px; border:1px solid var(--line); background:var(--surface-2); padding:0 8px}
+input[type=range]{width:100%; accent-color:var(--teal); height:24px}
+
+.score{display:flex; align-items:center; gap:10px}
+.score .big{font-family:var(--f-display); font-weight:700; font-size:28px; color:var(--gold); font-variant-numeric:tabular-nums; line-height:1}
+.score small{color:var(--muted); font-size:13px; line-height:1.3}
+
+/* code */
+.code{background:var(--code-bg); color:var(--code-fg); border-radius:12px; overflow:hidden; border:1px solid var(--line)}
+.code .bar{display:flex; justify-content:space-between; padding:8px 12px; font-size:12px; color:var(--code-mute); font-family:var(--f-mono); border-bottom:1px solid rgba(255,255,255,.06)}
+.code pre{margin:0; padding:8px 0; overflow-x:auto; font-family:var(--f-mono); font-size:12.5px; line-height:1.6}
+.ln{display:flex; padding-right:12px; min-width:max-content; transition:background .2s}
+.ln .no{width:34px; flex:none; text-align:right; padding-right:12px; color:var(--code-mute); user-select:none}
+.ln.hl{background:var(--code-hl); box-shadow:inset 3px 0 0 var(--code-num)}
+.ln.hl .no{color:var(--code-num)}
+.k{color:var(--code-kw)} .n{color:var(--code-num)} .f{color:var(--code-fn)} .p{color:#C792EA}
+.console{border-top:1px solid rgba(255,255,255,.06); padding:8px 12px; font-family:var(--f-mono); font-size:13px; color:var(--code-mute); display:flex; gap:8px}
+.console b{color:var(--code-num)}
+
+/* statement */
+.statement{display:flex; flex-direction:column; gap:12px; max-width:760px}
+.statement p, .statement ul{margin:0}
+.statement ul{padding-left:20px; display:flex; flex-direction:column; gap:4px}
+.statement .q{font-weight:600}
+.matrix{font-family:var(--f-mono); font-size:14px; background:var(--surface-2); border-radius:8px; padding:10px 14px; overflow-x:auto; white-space:pre; font-variant-numeric:tabular-nums}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Динамічне програмування · robot_with_val.cpp</div>
+    <h1>Робот збирає <em>золоті монети</em></h1>
+    <p class="lead">Робот іде з лівого верхнього кута в правий нижній, щоразу лише на одну клітинку вниз або вправо. Програма заповнює таблицю <code>val</code>: у кожній клітинці записано найбільшу кількість монет, з якою робот може туди прийти. Натискайте «Далі» або «Грати».</p>
+  </header>
+
+  <section class="stage">
+    <div class="left">
+      <div class="boards">
+        <div class="panel boardbox">
+          <div class="boardhead"><b>A[i][j]</b><span>монети в клітинках</span></div>
+          <div class="board">
+            <div></div><div class="collabels" id="colA"></div>
+            <div class="rowlabels" id="rowA"></div>
+            <div class="cells" id="cellsA"></div>
+          </div>
+        </div>
+        <div class="panel boardbox">
+          <div class="boardhead"><b>val[i][j]</b><span>найбільша сума до клітинки</span></div>
+          <div class="board">
+            <div></div><div class="collabels" id="colV"></div>
+            <div class="rowlabels" id="rowV"></div>
+            <div class="cells" id="cellsV"></div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="sw cur"></i>обчислюємо</span>
+        <span><i class="sw src"></i>сусіди згори й зліва</span>
+        <span><i class="sw win"></i>більший із них</span>
+        <span><i class="sw path"></i>маршрут робота</span>
+      </div>
+
+      <div class="player" role="group" aria-label="Керування візуалізацією">
+        <div class="btns">
+          <button class="btn" id="reset" type="button" aria-label="На початок"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+          <button class="btn" id="prev" type="button" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5v14L4 12z"/></svg></button>
+          <button class="btn primary" id="play" type="button"><svg viewBox="0 0 24 24" id="playIcon"><path d="M7 5v14l12-7z"/></svg><span id="playLabel">Грати</span></button>
+          <button class="btn" id="next" type="button" aria-label="Далі"><svg viewBox="0 0 24 24"><path d="M9 5v14l11-7z"/></svg></button>
+          <span class="spacer"></span>
+          <label for="speed" class="eyebrow" style="letter-spacing:.04em">Темп</label>
+          <select id="speed">
+            <option value="1500">повільно</option>
+            <option value="850" selected>звичайно</option>
+            <option value="400">швидко</option>
+          </select>
+        </div>
+        <input type="range" id="scrub" min="0" max="1" value="0" aria-label="Крок візуалізації">
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="panel explain" aria-live="polite">
+        <div class="top">
+          <span class="stepno" id="stepno">Крок 1</span>
+          <div class="vars" id="vars"></div>
+        </div>
+        <p id="text"></p>
+        <div class="formula" id="formula"></div>
+        <div class="score">
+          <span class="big" id="score">0</span>
+          <small id="scoreLabel">монет зібрав робот</small>
+        </div>
+      </div>
+
+      <div class="code">
+        <div class="bar"><span>robot_with_val.cpp</span><span>C++</span></div>
+        <pre id="code"></pre>
+        <div class="console"><span>вивід&gt;</span><b id="out"></b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel statement" aria-labelledby="st">
+    <h2 id="st">Умова задачі</h2>
+    <p>Задано таблицю розміром 5 × 5. У кожній клітинці лежить певна кількість золотих монет:</p>
+    <div class="matrix">3  7  9  2  7
+9  8  3  5  5
+1  7  9  8  5
+3  8  6  4 10
+6  3  9  7  8</div>
+    <ul>
+      <li>Робот починає в лівому верхньому куті й має дійти до правого нижнього кута.</li>
+      <li>За один хід він переміщується або на одну позицію вниз, або на одну позицію вправо.</li>
+      <li>На кожній позиції, де побував робот, він збирає всі золоті монети.</li>
+    </ul>
+    <p class="q">Яку найбільшу кількість монет може зібрати робот?</p>
+    <p>Відповідь: <b>67</b> монет. До клітинки (i, j) можна прийти лише згори або зліва, тому <code>val[i][j] = max(val[i-1][j], val[i][j-1]) + A[i][j]</code>. Кожну клітинку програма обчислює один раз, тож складність O(n²).</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  const n = 5;
+  const A = [[3,7,9,2,7],[9,8,3,5,5],[1,7,9,8,5],[3,8,6,4,10],[6,3,9,7,8]];
+
+  const SRC = `#include<iostream>
+
+using namespace std;
+
+int main(){
+    int const n = 5;
+    int A[][n] = {{3,7,9,2,7},
+                 {9,8,3,5,5},
+                 {1,7,9,8,5},
+                 {3,8,6,4,10},
+                 {6,3,9,7,8}};
+    int val[n][n];
+    val[0][0] = A[0][0];
+    for(int i=1; i<n; i++){
+        val[i][0] = val[i-1][0] + A[i][0];
+        val[0][i] = val[0][i-1] + A[0][i];
+    }
+    for(int i=1; i<n; i++){
+        for(int j=1; j<n; j++){
+            val[i][j] = max(val[i-1][j], val[i][j-1]) + A[i][j];
+        }
+    }
+    cout<<val[n-1][n-1]<<'\\n';
+    return 0;
+}`;
+
+  // ---------- build steps ----------
+  const steps = [];
+  const vals = Array.from({length:n}, () => Array(n).fill(null));
+  const snap = o => steps.push(Object.assign({lines:[], cur:null, src:[], win:null, vars:{}, formula:'', phase:'dp', path:null, robot:-1}, o, {vals: vals.map(r => r.slice())}));
+
+  snap({lines:[7,8,9,10,11,12],
+    text:'Масив A зберігає кількість монет у кожній клітинці. Оголошуємо порожню таблицю val[n][n]: у val[i][j] буде найбільша кількість монет, яку робот може мати, коли прийде в клітинку (i, j).'});
+
+  vals[0][0] = A[0][0];
+  snap({lines:[13], cur:[0,0], text:'Старт. Робот стоїть у лівому верхньому куті й одразу забирає монети з цієї клітинки.',
+    formula:`val[0][0] = A[0][0] = <span class="r">${A[0][0]}</span>`});
+
+  for (let i = 1; i < n; i++){
+    vals[i][0] = vals[i-1][0] + A[i][0];
+    snap({lines:[15], cur:[i,0], src:[[i-1,0]], win:[i-1,0], vars:{i},
+      text:'Лівий стовпець: сюди можна прийти тільки згори, бо зліва клітинок немає.',
+      formula:`val[${i}][0] = val[${i-1}][0] + A[${i}][0] = ${vals[i-1][0]} + ${A[i][0]} = <span class="r">${vals[i][0]}</span>`});
+    vals[0][i] = vals[0][i-1] + A[0][i];
+    snap({lines:[16], cur:[0,i], src:[[0,i-1]], win:[0,i-1], vars:{i},
+      text:'Верхній рядок: сюди можна прийти тільки зліва, бо згори клітинок немає.',
+      formula:`val[0][${i}] = val[0][${i-1}] + A[0][${i}] = ${vals[0][i-1]} + ${A[0][i]} = <span class="r">${vals[0][i]}</span>`});
+  }
+
+  for (let i = 1; i < n; i++){
+    for (let j = 1; j < n; j++){
+      const up = vals[i-1][j], left = vals[i][j-1];
+      const fromUp = up >= left;  // std::max returns the first argument on a tie
+      const m = fromUp ? up : left;
+      vals[i][j] = m + A[i][j];
+      const why = up === left
+        ? `Згори і зліва однаково — по ${up}.`
+        : `Згори ${up}, зліва ${left}. Вигідніше прийти ${fromUp ? 'згори' : 'зліва'}.`;
+      snap({lines:[20], cur:[i,j], src:[[i-1,j],[i,j-1]], win: fromUp ? [i-1,j] : [i,j-1], vars:{i,j},
+        text:`${why} До найкращого з двох значень додаємо ${A[i][j]} монет клітинки (${i}, ${j}).`,
+        formula:`val[${i}][${j}] = max(${up}, ${left}) + ${A[i][j]} = ${m} + ${A[i][j]} = <span class="r">${vals[i][j]}</span>`});
+    }
+  }
+
+  const answer = vals[n-1][n-1];
+  snap({lines:[23], cur:[n-1,n-1], out:String(answer),
+    text:`Таблиця заповнена. У правому нижньому куті val[4][4] — найбільша кількість монет на всьому шляху. Програма виводить ${answer}.`,
+    formula:`cout << val[4][4]  →  <span class="r">${answer}</span>`});
+
+  // reconstruct one optimal path (backwards)
+  const path = [[n-1,n-1]];
+  let ci = n-1, cj = n-1;
+  while (ci > 0 || cj > 0){
+    if (ci === 0) cj--;
+    else if (cj === 0) ci--;
+    else if (vals[ci-1][cj] >= vals[ci][cj-1]) ci--;
+    else cj--;
+    path.unshift([ci,cj]);
+  }
+  snap({lines:[23], out:String(answer), phase:'path', path,
+    text:'Програма рахує лише число, але з таблиці val можна відновити й сам маршрут. Ідемо з фінішу назад: щоразу переходимо в сусідню клітинку згори чи зліва, де val більше.',
+    formula: path.map(([a,b]) => vals[a][b]).join(' ← ').split(' ← ').reverse().join(' ← ')});
+
+  let sum = 0;
+  path.forEach(([pi,pj], k) => {
+    sum += A[pi][pj];
+    let move = 'старт';
+    if (k > 0){ move = pi > path[k-1][0] ? 'вниз' : 'вправо'; }
+    const last = k === path.length - 1;
+    snap({lines:[23], out:String(answer), phase:'robot', path, robot:k, collected:sum,
+      text: k === 0 ? `Робот вирушає з клітинки (0, 0) і забирає ${A[0][0]} монети.`
+        : last ? `Хід ${k}: ${move}. Робот на фініші й зібрав ${sum} монет. Більше зібрати неможливо.`
+        : `Хід ${k}: ${move} → (${pi}, ${pj}). Робот забирає ${A[pi][pj]} мон.`,
+      formula: path.slice(0, k+1).map(([a,b]) => A[a][b]).join(' + ') + ` = <span class="r">${sum}</span>`});
+  });
+
+  // ---------- static DOM ----------
+  const $ = id => document.getElementById(id);
+  ['colA','colV'].forEach(id => { $(id).innerHTML = [0,1,2,3,4].map(j => `<div>${j}</div>`).join(''); });
+  ['rowA','rowV'].forEach(id => { $(id).innerHTML = [0,1,2,3,4].map(i => `<div>${i}</div>`).join(''); });
+
+  const cellsA = [], cellsV = [];
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++){
+    const a = document.createElement('div'); a.className = 'cell';
+    a.innerHTML = `<span class="coin">${A[i][j]}</span>`;
+    a.setAttribute('aria-label', `A[${i}][${j}] = ${A[i][j]}`);
+    $('cellsA').appendChild(a); cellsA.push(a);
+    const v = document.createElement('div'); v.className = 'cell empty';
+    $('cellsV').appendChild(v); cellsV.push(v);
+  }
+  const robot = document.createElement('div');
+  robot.className = 'robot';
+  robot.innerHTML = `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="15" y="1" width="2" height="5" fill="var(--teal)"/><circle cx="16" cy="2.5" r="2.5" fill="var(--gold)"/><rect x="4" y="6" width="24" height="20" rx="6" fill="var(--teal)"/><rect x="8" y="11" width="16" height="9" rx="3" fill="var(--surface)"/><circle cx="12.5" cy="15.5" r="2" fill="var(--teal)"/><circle cx="19.5" cy="15.5" r="2" fill="var(--teal)"/><rect x="1" y="13" width="3" height="7" rx="1.5" fill="var(--teal)"/><rect x="28" y="13" width="3" height="7" rx="1.5" fill="var(--teal)"/></svg>`;
+  $('cellsA').appendChild(robot);
+
+  // code with light highlighting
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const hl = line => {
+    if (/^\s*#/.test(line)) return `<span class="p">${esc(line)}</span>`;
+    return esc(line)
+      .replace(/\b(int|const|for|return|using|namespace)\b/g, '<span class="k">$1</span>')
+      .replace(/\b(max|cout|main)\b/g, '<span class="f">$1</span>')
+      .replace(/(^|[^\w])(\d+)(?![\w])/g, '$1<span class="n">$2</span>');
+  };
+  const codeLines = SRC.split('\n').map((l, idx) => {
+    const d = document.createElement('div'); d.className = 'ln';
+    d.innerHTML = `<span class="no">${idx+1}</span><span>${hl(l) || ' '}</span>`;
+    $('code').appendChild(d); return d;
+  });
+
+  // ---------- render ----------
+  let k = 0, timer = null;
+  const scrub = $('scrub'); scrub.max = steps.length - 1;
+  const key = (i,j) => i*n + j;
+
+  function render(){
+    const s = steps[k];
+    const inPath = new Set((s.path || []).map(([i,j]) => key(i,j)));
+    const taken = new Set((s.path || []).slice(0, s.robot + 1).map(([i,j]) => key(i,j)));
+    const srcSet = new Set(s.src.map(([i,j]) => key(i,j)));
+
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++){
+      const id = key(i,j);
+      const a = cellsA[id];
+      a.className = 'cell' + (inPath.has(id) ? ' path' : '') + (taken.has(id) ? ' taken' : '')
+        + (s.cur && s.cur[0] === i && s.cur[1] === j && s.phase === 'dp' ? ' add' : '');
+      const v = cellsV[id], val = s.vals[i][j];
+      let cls = 'cell ' + (val === null ? 'empty' : 'v');
+      if (s.phase !== 'dp' && inPath.has(id)) cls += ' vpath';
+      else if (s.cur && s.cur[0] === i && s.cur[1] === j && s.phase === 'dp') cls += ' cur';
+      else if (srcSet.has(id)) cls += ' src' + (s.win && s.win[0] === i && s.win[1] === j ? ' win' : '');
+      v.className = cls;
+      v.textContent = val === null ? '' : val;
+      v.setAttribute('aria-label', val === null ? `val[${i}][${j}] ще не обчислено` : `val[${i}][${j}] = ${val}`);
+    }
+
+    const pos = s.phase === 'robot' ? s.path[s.robot] : [0,0];
+    robot.style.setProperty('--r', pos[0]);
+    robot.style.setProperty('--c', pos[1]);
+
+    codeLines.forEach((d, idx) => d.classList.toggle('hl', s.lines.includes(idx+1)));
+    const first = codeLines[(s.lines[0] || 1) - 1];
+    const pre = $('code');
+    if (first && (first.offsetTop < pre.scrollTop || first.offsetTop > pre.scrollTop + pre.clientHeight - 20)) pre.scrollTop = first.offsetTop - 40;
+
+    $('stepno').textContent = `Крок ${k+1} з ${steps.length}`;
+    $('vars').innerHTML = Object.entries(s.vars).map(([n2,v]) => `<span class="chip">${n2} = ${v}</span>`).join('')
+      + (s.phase === 'dp' ? '' : `<span class="chip gold">${s.phase === 'path' ? 'маршрут' : 'рух робота'}</span>`);
+    $('text').textContent = s.text;
+    $('formula').innerHTML = s.formula;
+    $('out').textContent = s.out || '';
+
+    if (s.phase === 'robot'){ $('score').textContent = s.collected; $('scoreLabel').textContent = 'монет зібрав робот'; }
+    else if (s.cur && s.phase === 'dp'){ const [i,j] = s.cur; $('score').textContent = s.vals[i][j]; $('scoreLabel').innerHTML = `максимум монет на шляху<br>до клітинки (${i}, ${j})`; }
+    else if (s.phase === 'path'){ $('score').textContent = answer; $('scoreLabel').textContent = 'монет на найкращому маршруті'; }
+    else { $('score').textContent = '—'; $('scoreLabel').textContent = 'таблиця val ще порожня'; }
+
+    scrub.value = k;
+    $('prev').disabled = $('reset').disabled = k === 0;
+    $('next').disabled = k === steps.length - 1;
+  }
+
+  function setPlaying(on){
+    clearInterval(timer); timer = null;
+    if (on){
+      if (k === steps.length - 1){ k = 0; render(); }
+      timer = setInterval(() => { if (k < steps.length - 1){ k++; render(); } if (k === steps.length - 1) setPlaying(false); }, +$('speed').value);
+    }
+    $('playLabel').textContent = on ? 'Пауза' : (k === steps.length - 1 ? 'Ще раз' : 'Грати');
+    $('playIcon').innerHTML = on ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>' : '<path d="M7 5v14l12-7z"/>';
+  }
+  const go = d => { k = Math.max(0, Math.min(steps.length - 1, k + d)); render(); if (!timer) setPlaying(false); };
+
+  $('next').onclick = () => { setPlaying(false); go(1); };
+  $('prev').onclick = () => { setPlaying(false); go(-1); };
+  $('reset').onclick = () => { setPlaying(false); k = 0; render(); setPlaying(false); };
+  $('play').onclick = () => setPlaying(!timer);
+  $('speed').onchange = () => { if (timer) setPlaying(true); };
+  scrub.oninput = () => { setPlaying(false); k = +scrub.value; render(); setPlaying(false); };
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight'){ setPlaying(false); go(1); }
+    if (e.key === 'ArrowLeft'){ setPlaying(false); go(-1); }
+    if (e.key === ' '){ e.preventDefault(); setPlaying(!timer); }
+  });
+
+  render();
+})();
+</script>
+
+</body></html>
