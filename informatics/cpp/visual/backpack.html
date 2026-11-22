@@ -1,0 +1,420 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Рюкзак грабіжника</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: two-column workbench (table + explanation | code + console), stacks on phones with a sticky control bar at the bottom */
+:root{
+  --bg:#EEF1F5; --surface:#FFFFFF; --ink:#1A2233; --muted:#5B6578; --line:#D5DBE5;
+  --accent:#C9820F; --accent-ink:#7A4D00; --accent-soft:#FFF0D4;
+  --dep:#DCE8FF; --dep-ink:#2B5BB8; --ok:#2E8B57; --ok-soft:#DDF3E6;
+  --code-bg:#F6F8FB; --code-hl:rgba(217,144,26,.18); --empty:#AEB6C4;
+  --f-display:"Unbounded","Manrope",system-ui,sans-serif;
+  --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151F; --surface:#182030; --ink:#E6EAF2; --muted:#9AA4B8; --line:#2A3447;
+  --accent:#F0B44C; --accent-ink:#F7CF85; --accent-soft:#3A2F17;
+  --dep:#1D2D4D; --dep-ink:#8FB3FF; --ok:#5CC98A; --ok-soft:#173326;
+  --code-bg:#0F1622; --code-hl:rgba(240,180,76,.16); --empty:#4A5568; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#10151F; --surface:#182030; --ink:#E6EAF2; --muted:#9AA4B8; --line:#2A3447;
+  --accent:#F0B44C; --accent-ink:#F7CF85; --accent-soft:#3A2F17;
+  --dep:#1D2D4D; --dep-ink:#8FB3FF; --ok:#5CC98A; --ok-soft:#173326;
+  --code-bg:#0F1622; --code-hl:rgba(240,180,76,.16); --empty:#4A5568; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 110px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;font-weight:700}
+h1{font-size:clamp(1.45rem,4.5vw,2.2rem);letter-spacing:-.01em}
+h2{font-size:1.05rem;font-weight:500}
+.lede{color:var(--muted);max-width:65ch;margin:6px 0 0}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.side{position:static}}
+
+/* items */
+.items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.item{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px;transition:border-color .2s,background .2s;min-width:0}
+.item svg{width:34px;height:34px;color:var(--muted)}
+.item .nm{font-weight:700}
+.item .meta{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.item.active{border-color:var(--accent);background:var(--accent-soft)}
+.item.active svg{color:var(--accent-ink)}
+.item.taken{border-color:var(--ok);background:var(--ok-soft)}
+.item.taken svg{color:var(--ok)}
+.cap{margin-top:10px;font-size:.88rem;color:var(--muted)}
+.cap b{color:var(--ink);font-family:var(--f-mono)}
+
+/* table */
+.tscroll{overflow-x:auto;margin-top:10px}
+table{border-collapse:separate;border-spacing:4px;font-variant-numeric:tabular-nums;width:100%}
+th{font-size:.75rem;color:var(--muted);font-weight:600;padding:2px 4px;white-space:nowrap}
+th.rowh{text-align:left}
+th.rowh span{display:block;font-family:var(--f-mono);font-weight:400;font-size:.7rem}
+th.colh{font-family:var(--f-mono)}
+td{font-family:var(--f-mono);text-align:center;border:1px solid var(--line);border-radius:8px;height:44px;min-width:56px;font-size:.92rem;transition:background .25s,border-color .25s,transform .25s;position:relative}
+td.empty{color:var(--empty)}
+td.cur{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:600;transform:scale(1.06)}
+td.dep{background:var(--dep);border-color:var(--dep-ink);color:var(--dep-ink)}
+td.final{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+td.path{outline:2px dashed var(--ok);outline-offset:1px}
+td .tag{position:absolute;top:-8px;right:-4px;font-size:.6rem;font-family:var(--f-body);font-weight:700;background:var(--dep-ink);color:var(--surface);border-radius:6px;padding:0 5px;line-height:15px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid}
+.lg-cur{background:var(--accent-soft);border-color:var(--accent)!important}
+.lg-dep{background:var(--dep);border-color:var(--dep-ink)!important}
+.lg-fin{background:var(--ok-soft);border-color:var(--ok)!important}
+
+/* explanation */
+.step-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.counter{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+#title{font-family:var(--f-display);font-weight:500;font-size:1rem;margin:6px 0 4px}
+#text{margin:0;max-width:65ch}
+#text code,.cond code{font-family:var(--f-mono);font-size:.85em;background:var(--code-bg);border:1px solid var(--line);border-radius:5px;padding:0 4px}
+.calc{display:grid;gap:6px;margin-top:10px}
+.opt{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.88rem;flex-wrap:wrap}
+.opt .v{font-family:var(--f-mono);font-weight:600;white-space:nowrap}
+.opt.win{border-color:var(--ok);background:var(--ok-soft)}
+.opt.lose{opacity:.65}
+
+/* backpack */
+.bag{margin-top:12px}
+.bagbar{display:flex;gap:3px;margin-top:6px}
+.slot{flex:1;height:30px;border-radius:6px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;overflow:hidden;white-space:nowrap}
+.slot.fill{border-style:solid;border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+.slot.off{opacity:.25}
+.bagsum{font-size:.85rem;color:var(--muted);margin-top:6px}
+.bagsum b{color:var(--ink);font-family:var(--f-mono)}
+
+/* code */
+.code{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;max-height:min(520px,60vh);overflow:auto;margin-top:10px;font-family:var(--f-mono);font-size:.78rem;line-height:1.6}
+.code pre{margin:0;padding:8px 0;min-width:max-content}
+.ln{display:block;padding:0 12px 0 0;white-space:pre;transition:background .2s}
+.ln .no{display:inline-block;width:3.2em;text-align:right;padding-right:12px;color:var(--empty);user-select:none}
+.ln.hl{background:var(--code-hl);box-shadow:inset 3px 0 0 var(--accent)}
+.ln.hl .no{color:var(--accent-ink);font-weight:600}
+.kw{color:var(--dep-ink)} .cm{color:var(--muted);font-style:italic} .nu{color:var(--accent-ink)}
+.console{background:#141A24;color:#D7DEE9;border-radius:10px;padding:12px;margin-top:10px;font-family:var(--f-mono);font-size:.8rem;white-space:pre;overflow-x:auto;min-height:3.2em}
+.console .in{color:#8FB3FF}.console .res{color:#F0B44C;font-weight:600}
+
+/* controls */
+.controls{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.cin{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:8px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;height:44px;min-width:44px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#1A1205;min-width:96px}
+button:disabled{opacity:.4;cursor:default}
+button svg{width:18px;height:18px}
+#scrub{flex:1;min-width:60px;accent-color:var(--accent)}
+select{font:inherit;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:0 8px}
+@media (max-width:520px){.hide-sm{display:none}.items{gap:6px}.item{padding:8px}.item svg{width:28px;height:28px}button.primary{min-width:60px}}
+
+/* condition */
+.cond{max-width:75ch}
+.cond p{margin:8px 0}
+.cond ul{margin:8px 0;padding-left:20px}
+.cond .src{color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="label">Динамічне програмування · задача про рюкзак (0/1)</div>
+    <h1>Рюкзак грабіжника</h1>
+    <p class="lede">Покрокове виконання функції <code style="font-family:var(--f-mono)">max_backpack_value</code>: як заповнюється таблиця <code style="font-family:var(--f-mono)">val[i][j]</code> і чому в рюкзак потрапляють саме ці предмети. Тисніть «Далі» або «Відтворити».</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel">
+        <h2>Товари в магазині</h2>
+        <div class="items" id="items"></div>
+        <div class="cap">Місткість рюкзака: <b>capacity = 4</b> фунти</div>
+      </section>
+
+      <section class="panel">
+        <h2>Таблиця val[i][j]</h2>
+        <div class="tscroll"><table id="tbl"></table></div>
+        <div class="legend">
+          <span><i class="lg-cur"></i>поточна клітинка</span>
+          <span><i class="lg-dep"></i>з чим порівнюємо</span>
+          <span><i class="lg-fin"></i>відповідь</span>
+        </div>
+      </section>
+
+      <section class="panel" aria-live="polite">
+        <div class="step-head"><span class="label">Що відбувається</span><span class="counter" id="counter"></span></div>
+        <div id="title"></div>
+        <p id="text"></p>
+        <div class="calc" id="calc"></div>
+        <div class="bag" id="bag"></div>
+      </section>
+    </div>
+
+    <div class="col side">
+      <section class="panel">
+        <h2>Код C++</h2>
+        <div class="code" id="code"><pre id="pre"></pre></div>
+      </section>
+      <section class="panel">
+        <h2>Консоль</h2>
+        <div class="console" id="console"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel cond">
+    <div class="label">Умова задачі</div>
+    <h2 style="margin-top:4px">Що має винести грабіжник?</h2>
+    <p>Грабіжник пробрався в магазин з рюкзаком, який витримує не більше <b>4 фунтів</b>. У магазині є три товари, кожен в одному екземплярі:</p>
+    <ul>
+      <li>гітара: <b>$1500</b>, вага <b>1 фунт</b>;</li>
+      <li>стереосистема: <b>$3000</b>, вага <b>4 фунти</b>;</li>
+      <li>ноутбук: <b>$2000</b>, вага <b>3 фунти</b>.</li>
+    </ul>
+    <p>Які товари покласти в рюкзак, щоб їхня сумарна вартість була максимальною, а сумарна вага не перевищувала місткість рюкзака? Предмет можна або взяти цілим, або залишити: різати чи брати частину не можна.</p>
+    <p>Програма читає кількість товарів <code>n</code>, потім <code>n</code> пар «ціна вага», потім місткість <code>capacity</code>, і виводить максимальну вартість. Для цих даних відповідь: <b>$3500</b> (гітара + ноутбук, разом 4 фунти).</p>
+    <p class="src">Джерело: «Грокаємо алгоритми», розділ 9 «Динамічне програмування», с. 207.</p>
+  </section>
+</div>
+
+<div class="controls">
+  <div class="cin">
+    <button id="bReset" title="На початок" aria-label="На початок"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button id="bPrev" title="Назад (←)" aria-label="Назад"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 5v14L4 12z"/></svg></button>
+    <button id="bPlay" class="primary"><svg viewBox="0 0 24 24" fill="currentColor" id="playIco"><path d="M7 5v14l12-7z"/></svg><span id="playTxt" class="hide-sm">Відтворити</span></button>
+    <button id="bNext" title="Далі (→)" aria-label="Далі"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 5v14l11-7z"/></svg><span class="hide-sm">Далі</span></button>
+    <input type="range" id="scrub" min="0" value="0" aria-label="Крок">
+    <select id="speed" aria-label="Швидкість" class="hide-sm">
+      <option value="2200">повільно</option>
+      <option value="1300" selected>нормально</option>
+      <option value="650">швидко</option>
+    </select>
+  </div>
+</div>
+
+<script>
+(function(){
+const ICONS = {
+  guitar:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M27 5l-9 9"/><path d="M25 3l4 4"/><path d="M15 12c-2-1-5 0-6 2-.6 1.2-2.2 1.4-3.6 2-2.8 1.4-3.2 5.4-.6 8s6.6 2.2 8-.6c.6-1.4.8-3 2-3.6 2-1 3-4 2-6"/><circle cx="12" cy="20" r="1.6"/></svg>',
+  stereo:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="9" width="26" height="16" rx="3"/><circle cx="10" cy="17" r="4"/><circle cx="22" cy="17" r="4"/><path d="M8 9l4-4h8l4 4"/></svg>',
+  laptop:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="7" width="20" height="13" rx="2"/><path d="M3 24h26l-2-4H5z"/></svg>'
+};
+const P = [null,
+  {name:'Гітара', gen:'гітари', price:1500, weight:1, icon:'guitar', short:'Гіт'},
+  {name:'Стереосистема', gen:'стереосистеми', price:3000, weight:4, icon:'stereo', short:'Стерео'},
+  {name:'Ноутбук', gen:'ноутбука', price:2000, weight:3, icon:'laptop', short:'Ноут'}
+];
+const n = 3, C = 4;
+const fp = w => w + ' ' + (w===1?'фунт':'фунти');
+const money = v => '$' + v;
+
+/* ---------- code with light highlighting ---------- */
+const SRC = `#include<iostream>
+
+using namespace std;
+
+struct Product{
+    int price;
+    int weight;
+};
+
+int max_backpack_value(Product Products[], int n, int capacity){
+    int val[n+1][capacity+1];
+    for(int i=0; i<=n; i++){
+        val[i][0] = 0;
+    }
+    for(int i=0; i<=capacity; i++){
+        val[0][i] = 0;
+    }
+    for(int i=1; i<=n; i++){
+        int price = Products[i].price;
+        int weight = Products[i].weight;
+        for(int j=1; j<=capacity; j++){
+            if(weight > j) {
+                val[i][j] = val[i-1][j];
+            } else {
+                val[i][j] = max(val[i-1][j], price + val[i-1][j-weight]);
+            }
+        }
+    }
+    for(int i=0; i<=n; i++){
+        for(int j=0; j<=capacity; j++){
+            cout<<val[i][j]<<' ';
+        }
+        cout<<'\\n';
+    }
+    return val[n][capacity];
+}
+int main(){
+
+    int n;
+    cout<<"Enter the number of products= ";
+    cin>>n;
+    cout<<"Enter the price and weight of each product"<<'\\n';
+    Product Products[n + 1];
+    for(int i=1; i<=n; i++){
+        Product cur;
+        cin>>cur.price>>cur.weight;
+        Products[i] = cur;
+
+    }
+    int capacity;
+    cout<<"Enter the capacity of backpack=";
+    cin>>capacity;
+    cout<<"Max value= "<<max_backpack_value(Products, n, capacity)<<'\\n';
+    return 0;
+}`;
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function hlLine(s){
+  let h = esc(s);
+  h = h.replace(/(&quot;|"[^"]*"|'[^']*')/g, m => '\u0001'+m+'\u0002');
+  h = h.replace(/\b(int|struct|return|for|if|else|using|namespace|max)\b/g,'<span class="kw">$1</span>');
+  h = h.replace(/\b(\d+)\b/g,'<span class="nu">$1</span>');
+  h = h.replace(/\u0001([^\u0002]*)\u0002/g,'<span class="cm">$1</span>');
+  return h;
+}
+const pre = document.getElementById('pre');
+const lines = SRC.split('\n');
+pre.innerHTML = lines.map((l,i)=>`<span class="ln" data-l="${i+1}"><span class="no">${i+1}</span>${hlLine(l)}</span>`).join('');
+const lnEls = [...pre.querySelectorAll('.ln')];
+
+/* ---------- simulate the algorithm into steps ---------- */
+const steps = [];
+const val = Array.from({length:n+1},()=>Array(C+1).fill(null));
+const sets = Array.from({length:n+1},()=>Array(C+1).fill(null));
+const snap = () => val.map(r=>r.slice());
+const snapSets = () => sets.map(r=>r.map(s=>s?s.slice():null));
+const push = o => { if(!o.table) o.table=snap(); if(!o.sets) o.sets=snapSets(); steps.push(o); };
+const INPUT = '<span class="in">Enter the number of products= 3\nEnter the price and weight of each product\n1500 1\n3000 4\n2000 3\nEnter the capacity of backpack=4</span>';
+
+push({lines:[37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54], title:'main(): зчитуємо дані',
+  text:'Програма зчитує 3 товари (ціна і вага кожного) та місткість рюкзака 4, а потім викликає <code>max_backpack_value(Products, 3, 4)</code>. Масив <code>Products</code> нумерується з 1, тому <code>Products[0]</code> не використовується.',
+  console:INPUT});
+push({lines:[11], title:'Створюємо таблицю val[4][5]',
+  text:'Рядок <code>i</code> означає «можна брати лише перші i товарів», стовпчик <code>j</code> означає «рюкзак місткістю j фунтів». У клітинці <code>val[i][j]</code> буде найбільша сума, яку можна винести за цих умов.'});
+for(let i=0;i<=n;i++){val[i][0]=0;sets[i][0]=[];}
+push({lines:[12,13,14], title:'Стовпчик j = 0 заповнюємо нулями',
+  text:'У рюкзак місткістю 0 нічого не влізе, тож сума завжди 0.'});
+for(let j=0;j<=C;j++){val[0][j]=0;sets[0][j]=[];}
+push({lines:[15,16,17], title:'Рядок i = 0 заповнюємо нулями',
+  text:'Якщо товарів ще немає (i = 0), то й красти нічого: сума 0 для будь-якої місткості.'});
+
+for(let i=1;i<=n;i++){
+  const p=P[i];
+  push({lines:[18,19,20], title:`i = ${i}: розглядаємо товар «${p.name}»`, item:i,
+    text:`<code>price = ${p.price}</code>, <code>weight = ${p.weight}</code>. Тепер для кожної місткості j від 1 до 4 вирішуємо: брати цей товар чи ні.`});
+  for(let j=1;j<=C;j++){
+    let st={item:i,cur:[i,j]};
+    if(p.weight>j){
+      val[i][j]=val[i-1][j]; sets[i][j]=sets[i-1][j].slice();
+      Object.assign(st,{lines:[21,22,23], deps:[[i-1,j,'вище']],
+        title:`val[${i}][${j}]: товар не влазить`,
+        text:`Вага ${p.gen} ${fp(p.weight)} більша за місткість j = ${j}, тож <code>weight &gt; j</code>. Беремо найкращий результат без цього товару з клітинки вище: <code>val[${i-1}][${j}] = ${val[i-1][j]}</code>.`,
+        calc:[{l:'Не брати: val['+(i-1)+']['+j+']',v:val[i-1][j],win:true}]});
+    } else {
+      const a=val[i-1][j], b=p.price+val[i-1][j-p.weight];
+      const take=b>a;
+      val[i][j]=Math.max(a,b);
+      sets[i][j]= take ? sets[i-1][j-p.weight].concat([i]) : sets[i-1][j].slice();
+      const deps=[[i-1,j,'А']]; if(j-p.weight!==j) deps.push([i-1,j-p.weight,'Б']);
+      Object.assign(st,{lines:[21,22,24,25], deps,
+        title:`val[${i}][${j}]: обираємо більше з двох`,
+        text:`Товар вагою ${fp(p.weight)} влазить у рюкзак на ${fp(j)}. Порівнюємо два варіанти і записуємо більший.`,
+        calc:[
+          {l:`А. Не брати: val[${i-1}][${j}]`,v:a,win:!take},
+          {l:`Б. Взяти: ${p.price} + val[${i-1}][${j}−${p.weight}] = ${p.price} + ${val[i-1][j-p.weight]}`,v:b,win:take}
+        ]});
+    }
+    push(st);
+  }
+}
+let out=''; for(let i=0;i<=n;i++){out+=val[i].join(' ')+' \n';}
+push({lines:[29,30,31,32,33,34], title:'Друкуємо таблицю',
+  text:'Подвійний цикл виводить усю таблицю в консоль, рядок за рядком.',
+  console:INPUT+'\n'+out.trimEnd()});
+/* backtrack (not in the code, explains the answer) */
+const path=[]; let j=C;
+for(let i=n;i>=1;i--){ if(val[i][j]!==val[i-1][j]){path.push([i,j]); j-=P[i].weight;} }
+const chosen=path.map(x=>x[0]);
+push({lines:[35], title:`Відповідь: val[3][4] = ${val[n][C]}`, final:true, cur:[n,C], cur2:true,
+  text:`Функція повертає правий нижній кут таблиці. Щоб побачити, <b>які</b> товари взято, підіймаємось угору: якщо <code>val[i][j]</code> відрізняється від клітинки над нею, товар i взято, і ми зсуваємось ліворуч на його вагу. Так знаходимо ноутбук (${money(2000)}, 3 фунти) і гітару (${money(1500)}, 1 фунт): разом ${money(3500)} і рівно 4 фунти.`,
+  console:INPUT+'\n'+out.trimEnd()+'\n<span class="res">Max value= '+val[n][C]+'</span>', path, chosen});
+let lastC='';
+steps.forEach(s=>{ if(s.console!==undefined) lastC=s.console; else s.console=lastC; });
+
+/* ---------- render ---------- */
+const itemsEl=document.getElementById('items');
+itemsEl.innerHTML=P.slice(1).map((p,k)=>`<div class="item" id="it${k+1}">${ICONS[p.icon]}<div class="nm">${p.name}</div><div class="meta">${money(p.price)} · ${fp(p.weight)}</div></div>`).join('');
+const tbl=document.getElementById('tbl');
+let th='<tr><th></th>'+Array.from({length:C+1},(_,j)=>`<th class="colh">j=${j}</th>`).join('')+'</tr>';
+for(let i=0;i<=n;i++){
+  th+=`<tr><th class="rowh">${i===0?'немає товарів':P[i].name}<span>i=${i}</span></th>`+Array.from({length:C+1},(_,j)=>`<td id="c${i}_${j}"></td>`).join('')+'</tr>';
+}
+tbl.innerHTML=th;
+const $=id=>document.getElementById(id);
+const scrub=$('scrub'); scrub.max=steps.length-1;
+let k=0, timer=null;
+
+function render(){
+  const s=steps[k];
+  $('counter').textContent=`крок ${k+1} з ${steps.length}`;
+  $('title').textContent=s.title;
+  $('text').innerHTML=s.text;
+  $('calc').innerHTML=(s.calc||[]).map(c=>`<div class="opt ${s.calc.length>1?(c.win?'win':'lose'):'win'}"><span>${c.l}</span><span class="v">${c.v}${c.win?' ✓':''}</span></div>`).join('');
+  // items
+  for(let i=1;i<=n;i++){const e=$('it'+i);e.classList.toggle('active',s.item===i);e.classList.toggle('taken',!!(s.chosen&&s.chosen.includes(i)));}
+  // table
+  for(let i=0;i<=n;i++)for(let j=0;j<=C;j++){
+    const td=$(`c${i}_${j}`), v=s.table?s.table[i][j]:null;
+    td.className=''; td.innerHTML = v===null?'?':v; if(v===null) td.classList.add('empty');
+  }
+  (s.deps||[]).forEach(([i,j,t])=>{const td=$(`c${i}_${j}`);td.classList.add('dep');td.innerHTML+=`<span class="tag">${t}</span>`;});
+  if(s.cur){$(`c${s.cur[0]}_${s.cur[1]}`).classList.add(s.final?'final':'cur');}
+  (s.path||[]).forEach(([i,j])=>$(`c${i}_${j}`).classList.add('path'));
+  // backpack
+  let set=null, cap=null;
+  if(s.cur && s.sets){ set=s.final?s.chosen:s.sets[s.cur[0]][s.cur[1]]; cap=s.cur[1]; }
+  if(set){
+    let slots=[]; set.slice().sort().forEach(i=>{for(let w=0;w<P[i].weight;w++)slots.push(`<div class="slot fill" title="${P[i].name}">${w===0?P[i].short:''}</div>`);});
+    while(slots.length<cap) slots.push('<div class="slot"></div>');
+    for(let w=cap;w<C;w++) slots.push('<div class="slot off"></div>');
+    const sum=set.reduce((a,i)=>a+P[i].price,0), wt=set.reduce((a,i)=>a+P[i].weight,0);
+    $('bag').innerHTML=`<div class="label">Рюкзак на ${fp(cap)} для цієї клітинки</div><div class="bagbar">${slots.join('')}</div><div class="bagsum">${set.length?set.map(i=>P[i].name).join(' + '):'порожньо'} · вартість <b>${money(sum)}</b> · вага <b>${wt}/${cap}</b></div>`;
+  } else $('bag').innerHTML='';
+  // code
+  lnEls.forEach(e=>e.classList.toggle('hl',s.lines.includes(+e.dataset.l)));
+  const first=lnEls[s.lines[0]-1], box=$('code');
+  if(first){const top=first.offsetTop-box.clientHeight/3; box.scrollTo({top:Math.max(0,top),behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});}
+  $('console').innerHTML=s.console||'<span style="opacity:.5">(порожньо)</span>';
+  scrub.value=k;
+  $('bPrev').disabled=k===0; $('bNext').disabled=k===steps.length-1;
+}
+function go(x){k=Math.max(0,Math.min(steps.length-1,x));render(); if(k===steps.length-1)stop();}
+function play(){ if(k===steps.length-1)k=0,render(); $('playTxt').textContent='Пауза'; $('playIco').innerHTML='<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+  timer=setInterval(()=>go(k+1),+$('speed').value); }
+function stop(){ clearInterval(timer); timer=null; $('playTxt').textContent='Відтворити'; $('playIco').innerHTML='<path d="M7 5v14l12-7z"/>'; }
+$('bPlay').onclick=()=>timer?stop():play();
+$('bNext').onclick=()=>{stop();go(k+1)};
+$('bPrev').onclick=()=>{stop();go(k-1)};
+$('bReset').onclick=()=>{stop();go(0)};
+scrub.oninput=()=>{stop();go(+scrub.value)};
+$('speed').onchange=()=>{if(timer){stop();play();}};
+document.addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  if(e.key==='ArrowRight'){stop();go(k+1)} else if(e.key==='ArrowLeft'){stop();go(k-1)} else if(e.key===' '){e.preventDefault();timer?stop():play();} });
+render();
+})();
+</script>
+
+</body></html>
