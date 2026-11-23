@@ -1,0 +1,1065 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Теорія графів</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a notebook on graph paper — one slide per screen, text left / figure right, stacking on phones */
+:root {
+  --bg: #f4f7fc;
+  --grid: rgba(47, 91, 234, 0.07);
+  --panel: #ffffff;
+  --ink: #18213d;
+  --muted: #56607f;
+  --line: #d3dbec;
+  --accent: #2f5bea;
+  --accent-soft: rgba(47, 91, 234, 0.12);
+  --hl: #e8741c;
+  --hl-soft: rgba(232, 116, 28, 0.14);
+  --c3: #138a7c;
+  --node: #ffffff;
+  --edge: #8a94b3;
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1527; --grid: rgba(124, 155, 255, 0.07); --panel: #171f38; --ink: #e6eaf6; --muted: #9ba5c4;
+    --line: #2b3554; --accent: #7f9dff; --accent-soft: rgba(127, 157, 255, 0.16); --hl: #ffa04a;
+    --hl-soft: rgba(255, 160, 74, 0.16); --c3: #4fd1bf; --node: #1b2442; --edge: #6d7899; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1527; --grid: rgba(124, 155, 255, 0.07); --panel: #171f38; --ink: #e6eaf6; --muted: #9ba5c4;
+  --line: #2b3554; --accent: #7f9dff; --accent-soft: rgba(127, 157, 255, 0.16); --hl: #ffa04a;
+  --hl-soft: rgba(255, 160, 74, 0.16); --c3: #4fd1bf; --node: #1b2442; --edge: #6d7899; color-scheme: dark;
+}
+
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  overflow: hidden;
+}
+.deck { height: 100%; display: flex; flex-direction: column; }
+
+/* top bar */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 8px;
+  font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.topbar .brand { text-transform: uppercase; }
+.progress { height: 3px; background: var(--line); }
+.progress span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+
+/* stage + slides */
+.stage { flex: 1; position: relative; min-height: 0; }
+.slide {
+  position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: clamp(16px, 4vh, 44px);
+  animation: enter .35s ease both;
+}
+@keyframes enter { from { opacity: .4; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .slide { animation: none; } .progress span { transition: none; } }
+
+.inner {
+  max-width: 1120px; margin: 0 auto; min-height: 100%;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 56px); align-items: center;
+}
+.inner.wide { grid-template-columns: minmax(0, 1fr); align-content: center; }
+.inner > * { min-width: 0; }
+.text { display: flex; flex-direction: column; gap: 14px; }
+
+.eyebrow {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; overflow-wrap: anywhere; line-height: 1.15; }
+h1 { font-size: clamp(2.2rem, 6.5vw, 4.6rem); letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.45rem, 3.1vw, 2.4rem); }
+h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.02rem; margin: 0; }
+p { margin: 0; max-width: 62ch; }
+.lead { font-size: clamp(1.05rem, 1.6vw, 1.22rem); color: var(--muted); }
+ul.points { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; max-width: 62ch; }
+ul.points li::marker { color: var(--accent); }
+b, strong { font-weight: 600; }
+.term { color: var(--accent); font-weight: 600; }
+.hlt { color: var(--hl); font-weight: 600; }
+
+.def {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; max-width: 62ch;
+}
+.def .label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.formula {
+  font-family: var(--font-mono); font-size: clamp(1rem, 1.6vw, 1.15rem);
+  background: var(--accent-soft); color: var(--ink); padding: 8px 12px; border-radius: 8px; width: fit-content; max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* figures */
+figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+figure svg { width: 100%; height: auto; max-height: 56vh; display: block; }
+figcaption { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); text-align: center; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pair figure { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+
+/* svg graph styles */
+.edge { stroke: var(--edge); stroke-width: 2.4; fill: none; transition: stroke .2s, stroke-width .2s; }
+.edge.hl { stroke: var(--hl); stroke-width: 4.5; }
+.edge.c1 { stroke: var(--accent); } .edge.c2 { stroke: var(--hl); } .edge.c3 { stroke: var(--c3); }
+.node circle { fill: var(--node); stroke: var(--accent); stroke-width: 2.4; transition: fill .2s, stroke .2s; }
+.node text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; font-size: 15px; text-anchor: middle; dominant-baseline: central; }
+.node.hl circle { fill: var(--hl-soft); stroke: var(--hl); stroke-width: 3; }
+.node.sel circle { fill: var(--hl); stroke: var(--hl); }
+.node.sel text { fill: var(--bg); }
+.node.root circle { fill: var(--accent); }
+.node.root text { fill: var(--bg); }
+.node.c1 circle { stroke: var(--accent); fill: var(--accent-soft); }
+.node.c2 circle { stroke: var(--hl); fill: var(--hl-soft); }
+.node.c3 circle { stroke: var(--c3); fill: var(--node); }
+.node.small text { font-family: var(--font-body); font-weight: 500; font-size: 13px; }
+.wlabel { fill: var(--ink); font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: var(--bg); stroke-width: 6px; stroke-linejoin: round; }
+.deg { fill: var(--hl); font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+
+/* schematic illustrations on the "uses" cards */
+.ill { width: 100%; height: auto; aspect-ratio: 200 / 90; display: block; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.i-line { stroke: var(--edge); stroke-width: 2; fill: none; }
+.i-thin { stroke: var(--edge); stroke-width: 1.5; fill: none; opacity: .55; }
+.i-node { fill: var(--node); stroke: var(--accent); stroke-width: 2; }
+.i-acc { fill: var(--accent); }
+.i-road { stroke: var(--edge); stroke-width: 7; stroke-linecap: round; fill: none; opacity: .3; }
+.i-route { stroke: var(--hl); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.i-pin { fill: var(--hl); }
+.i-la { stroke: var(--accent); stroke-width: 5; stroke-linejoin: round; fill: none; }
+.i-lb { stroke: var(--hl); stroke-width: 5; fill: none; }
+.i-st { fill: var(--node); stroke: var(--ink); stroke-width: 1.5; }
+.i-arrow { stroke: var(--edge); stroke-width: 1.8; fill: none; }
+.i-arrowhead { fill: var(--edge); }
+.i-wifi { stroke: var(--edge); stroke-width: 2; stroke-dasharray: 3 4; fill: none; }
+.i-c { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.i-o { fill: var(--hl-soft); stroke: var(--hl); stroke-width: 2; }
+.i-h { fill: var(--node); stroke: var(--edge); stroke-width: 1.5; }
+.i-txt { fill: var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.i-tok { fill: var(--panel); stroke: var(--accent); stroke-width: 1.5; }
+.i-att { stroke: var(--hl); fill: none; stroke-linecap: round; }
+
+/* attention diagram on the LLM slide */
+.tok rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.tok.src rect { fill: var(--hl-soft); stroke: var(--hl); }
+.tok.top rect { stroke: var(--accent); fill: var(--accent-soft); }
+.tok text { fill: var(--ink); font-family: var(--font-body); font-size: 15px; font-weight: 500; text-anchor: middle; dominant-baseline: central; }
+.att { stroke: var(--hl); fill: none; stroke-linecap: round; }
+.att-w { fill: var(--hl); font-family: var(--font-mono); font-size: 12px; font-weight: 600; text-anchor: middle; paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+.note { fill: var(--muted); font-family: var(--font-body); font-size: 13px; font-style: italic; }
+.note-line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; fill: none; }
+.arrowhead { fill: var(--edge); } .arrowhead.hl { fill: var(--hl); }
+
+/* title slide */
+.title-wrap { display: flex; flex-direction: column; gap: 18px; }
+.title-wrap .sub { font-size: clamp(1.1rem, 2vw, 1.4rem); color: var(--muted); max-width: 34ch; }
+.hint { font-family: var(--font-mono); font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+kbd { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; background: var(--panel); color: var(--ink); }
+
+/* uses cards */
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.map { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 14px; }
+.map dt { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 2px; }
+.map dd { margin: 0; }
+
+/* tables / code */
+.scroll-x { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.matrix { font-family: var(--font-mono); font-size: clamp(14px, 1.6vw, 17px); margin: 0 auto; }
+.matrix th, .matrix td { width: 2.4em; height: 2.2em; text-align: center; }
+.matrix th { color: var(--muted); font-weight: 600; }
+.matrix td { border: 1px solid var(--line); background: var(--panel); color: var(--muted); }
+.matrix td.one { color: var(--accent); font-weight: 600; cursor: pointer; }
+.matrix td.diag { background: var(--accent-soft); }
+.matrix td.on, .matrix th.on { background: var(--hl-soft); color: var(--hl); }
+.adj { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-mono); font-size: clamp(14px, 1.6vw, 16px); }
+.adj button {
+  all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+}
+.adj button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.adj button.on { border-color: var(--hl); background: var(--hl-soft); }
+.adj .v { font-weight: 600; color: var(--accent); width: 1.4em; }
+.adj .arrow { color: var(--muted); }
+.adj .cell { border: 1px solid var(--line); border-radius: 5px; padding: 0 8px; background: var(--bg); }
+pre.code {
+  margin: 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; overflow-x: auto; color: var(--ink);
+}
+.code .k { color: var(--accent); } .code .s { color: var(--c3); } .code .c { color: var(--muted); font-style: italic; }
+p code { font-family: var(--font-mono); font-size: .92em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+.tap { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.compare { width: 100%; font-size: 15px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.compare th, .compare td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.compare thead th { font-family: var(--font-display); font-weight: 500; font-size: 14px; background: var(--accent-soft); }
+.compare tbody th { font-weight: 600; color: var(--muted); font-size: 14px; }
+.compare tr:last-child td, .compare tr:last-child th { border-bottom: 0; }
+.good { color: var(--c3); font-weight: 600; } .bad { color: var(--hl); font-weight: 600; }
+
+/* quiz */
+.quiz { display: flex; flex-direction: column; gap: 10px; max-width: 760px; }
+.quiz details { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+.quiz summary { cursor: pointer; font-weight: 500; list-style: none; display: flex; gap: 12px; }
+.quiz summary::-webkit-details-marker { display: none; }
+.quiz summary .n { font-family: var(--font-mono); color: var(--accent); font-weight: 600; }
+.quiz summary::after { content: "Відповідь"; margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 3px; }
+.quiz details[open] summary::after { content: "Сховати"; }
+.quiz details p { margin-top: 8px; color: var(--hl); font-weight: 500; }
+.quiz summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+
+/* controls */
+.controls {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 12px;
+  border-top: 1px solid var(--line); background: var(--bg);
+}
+.controls button {
+  font: 600 14px var(--font-body); color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; cursor: pointer; min-width: 44px;
+}
+.controls button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.controls button:disabled { opacity: .4; cursor: default; }
+.controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.counter { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 860px) {
+  .inner { grid-template-columns: minmax(0, 1fr); align-content: start; align-items: start; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  figure svg { max-height: 44vh; }
+}
+@media (max-width: 560px) {
+  body { font-size: 15px; }
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .pair { grid-template-columns: minmax(0, 1fr); }
+  .controls button .lbl { display: none; }
+  .topbar .topic { display: none; }
+  .compare th, .compare td { padding: 8px 10px; font-size: 14px; }
+}
+</style>
+
+<div class="deck">
+  <div class="topbar"><span class="brand">Теорія графів</span><span class="topic" id="topic"></span></div>
+  <div class="progress"><span id="bar"></span></div>
+
+  <main class="stage" id="stage">
+
+    <!-- 1 -->
+    <section class="slide" data-topic="Вступ">
+      <div class="inner">
+        <div class="title-wrap">
+          <div class="eyebrow">Інформатика · Урок</div>
+          <h1>Теорія графів</h1>
+          <p class="sub">Вершини, ребра, шляхи, дерева і те, як граф зберігається в пам’яті комп’ютера.</p>
+          <div class="hint"><kbd>←</kbd><kbd>→</kbd> клавіші або свайп пальцем</div>
+        </div>
+        <figure><svg id="g-title" role="img" aria-label="Приклад графа з шести вершин"></svg></figure>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-topic="Основи">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Основи</div>
+          <h2>Що таке граф</h2>
+          <div class="def">
+            <span class="label">Означення</span>
+            <p><b>Граф</b> — це набір точок (<span class="term">вершин</span>) і ліній, що з’єднують деякі пари цих точок (<span class="term">ребер</span>).</p>
+          </div>
+          <p>Математично граф записують як пару множин:</p>
+          <div class="formula">G = (V, E)</div>
+          <ul class="points">
+            <li><b>V</b> (vertices) — множина вершин: {1, 2, 3, 4, 5}</li>
+            <li><b>E</b> (edges) — множина ребер: {1–2, 1–4, 2–3, 2–4, 2–5, 3–5, 4–5}</li>
+          </ul>
+          <p class="lead">Граф показує лише <b>зв’язки</b>. Довжина ліній і розташування точок на малюнку значення не мають.</p>
+        </div>
+        <figure><svg id="g-def" role="img" aria-label="Граф з п’яти вершин і семи ребер"></svg><figcaption>|V| = 5 вершин, |E| = 7 ребер</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" data-topic="Основи">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Основи</div>
+          <h2>Вершини та ребра</h2>
+          <ul class="points">
+            <li><span class="term">Суміжні вершини</span> з’єднані ребром. Вершини 1 і 2 суміжні, а 1 і 3 ні.</li>
+            <li><span class="term">Інцидентність</span>: ребро 2–5 інцидентне вершинам 2 і 5, тобто «торкається» їх.</li>
+            <li><span class="term">Степінь вершини</span> deg(v) — кількість ребер, що виходять з неї. На малюнку степені позначено помаранчевим.</li>
+            <li><span class="term">Ізольована вершина</span> має степінь 0, вона ні з чим не з’єднана.</li>
+          </ul>
+          <p class="lead">Степінь показує, скільки сусідів має вершина. У соцмережі це кількість друзів людини.</p>
+        </div>
+        <figure><svg id="g-deg" role="img" aria-label="Граф зі степенями вершин"></svg><figcaption>deg(2) = 4 — найбільший степінь</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-topic="Основи">
+      <div class="inner wide">
+        <div class="text">
+          <div class="eyebrow">Основи</div>
+          <h2>Графи навколо нас</h2>
+          <p class="lead">Будь-яку систему, де є об’єкти і зв’язки між ними, можна описати графом.</p>
+        </div>
+        <div class="cards">
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Люди, пов’язані дружбою">
+              <path class="i-line" d="M30 32 L98 20 L168 34 M30 32 L62 70 L98 20 L138 68 L168 34 M62 70 L138 68"/>
+              <circle class="i-node" cx="30" cy="32" r="12"/><circle class="i-acc" cx="30" cy="28" r="4"/><path class="i-acc" d="M23 40 Q30 31 37 40 Z"/>
+              <circle class="i-node" cx="98" cy="20" r="12"/><circle class="i-acc" cx="98" cy="16" r="4"/><path class="i-acc" d="M91 28 Q98 19 105 28 Z"/>
+              <circle class="i-node" cx="168" cy="34" r="12"/><circle class="i-acc" cx="168" cy="30" r="4"/><path class="i-acc" d="M161 42 Q168 33 175 42 Z"/>
+              <circle class="i-node" cx="62" cy="70" r="12"/><circle class="i-acc" cx="62" cy="66" r="4"/><path class="i-acc" d="M55 78 Q62 69 69 78 Z"/>
+              <circle class="i-node" cx="138" cy="68" r="12"/><circle class="i-acc" cx="138" cy="64" r="4"/><path class="i-acc" d="M131 76 Q138 67 145 76 Z"/>
+            </svg>
+            <h3>Соціальні мережі</h3><dl class="map"><dt>Вершини</dt><dd>люди</dd><dt>Ребра</dt><dd>дружба, підписки</dd></dl><p>Рекомендації «Можливо, ви знайомі» шукають друзів ваших друзів.</p>
+          </div>
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Сітка доріг з прокладеним маршрутом">
+              <path class="i-road" d="M30 20 H175 M30 45 H175 M30 70 H175 M30 20 V70 M80 20 V70 M130 20 V70 M175 20 V70"/>
+              <path class="i-route" d="M30 70 H80 V45 H130 V20 H175"/>
+              <circle class="i-acc" cx="30" cy="70" r="5"/>
+              <path class="i-pin" d="M175 20 L168.5 10 A7.5 7.5 0 1 1 181.5 10 Z"/>
+            </svg>
+            <h3>Навігатори й карти</h3><dl class="map"><dt>Вершини</dt><dd>перехрестя, міста</dd><dt>Ребра</dt><dd>дороги з довжиною</dd></dl><p>Google Maps шукає найкоротший шлях у графі доріг.</p>
+          </div>
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Схема двох ліній метро з пересадкою">
+              <path class="i-la" d="M15 72 L70 45 L130 45 L185 18"/>
+              <path class="i-lb" d="M100 8 V82"/>
+              <circle class="i-st" cx="15" cy="72" r="4"/><circle class="i-st" cx="42" cy="58.5" r="4"/><circle class="i-st" cx="70" cy="45" r="4"/>
+              <circle class="i-st" cx="130" cy="45" r="4"/><circle class="i-st" cx="157" cy="31.5" r="4"/><circle class="i-st" cx="185" cy="18" r="4"/>
+              <circle class="i-st" cx="100" cy="8" r="4"/><circle class="i-st" cx="100" cy="26" r="4"/><circle class="i-st" cx="100" cy="64" r="4"/><circle class="i-st" cx="100" cy="82" r="4"/>
+              <circle class="i-st" cx="100" cy="45" r="7" stroke-width="2.5"/>
+            </svg>
+            <h3>Метро</h3><dl class="map"><dt>Вершини</dt><dd>станції</dd><dt>Ребра</dt><dd>перегони між ними</dd></dl><p>На схемі метро відстані не в масштабі: важливі лише з’єднання.</p>
+          </div>
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Вебсторінки, пов’язані посиланнями">
+              <defs><marker id="ill-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path class="i-arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+              <path class="i-arrow" marker-end="url(#ill-arr)" d="M46 34 L83 56"/>
+              <path class="i-arrow" marker-end="url(#ill-arr)" d="M111 56 L148 34"/>
+              <path class="i-arrow" marker-end="url(#ill-arr)" d="M46 22 L148 22"/>
+              <path class="i-arrow" marker-end="url(#ill-arr)" d="M111 66 L148 66"/>
+              <rect class="i-node" x="20" y="10" width="26" height="32" rx="3"/><path class="i-thin" d="M25 19 H41 M25 26 H41 M25 33 H35"/>
+              <rect class="i-node" x="85" y="48" width="26" height="32" rx="3"/><path class="i-thin" d="M90 57 H106 M90 64 H106 M90 71 H100"/>
+              <rect class="i-node" x="150" y="8" width="26" height="32" rx="3"/><path class="i-thin" d="M155 17 H171 M155 24 H171 M155 31 H165"/>
+              <rect class="i-node" x="150" y="50" width="26" height="32" rx="3"/><path class="i-thin" d="M155 59 H171 M155 66 H171 M155 73 H165"/>
+            </svg>
+            <h3>Інтернет</h3><dl class="map"><dt>Вершини</dt><dd>вебсторінки</dd><dt>Ребра</dt><dd>посилання</dd></dl><p>Пошуковики оцінюють сторінки за тим, скільки посилань на них веде.</p>
+          </div>
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Роутер, з’єднаний з комп’ютерами кабелем і Wi‑Fi">
+              <path class="i-line" d="M83 41 L38 18 M117 41 L162 18"/>
+              <path class="i-wifi" d="M83 49 L38 66 M117 49 L162 66"/>
+              <path class="i-line" d="M90 37 L87 28 M110 37 L113 28"/>
+              <rect class="i-node" x="83" y="37" width="34" height="16" rx="4"/>
+              <circle class="i-acc" cx="93" cy="45" r="2"/><circle class="i-acc" cx="100" cy="45" r="2"/><circle class="i-acc" cx="107" cy="45" r="2"/>
+              <rect class="i-node" x="12" y="8" width="26" height="17" rx="2"/><path class="i-line" d="M25 25 V30 M19 30 H31"/>
+              <rect class="i-node" x="12" y="58" width="26" height="17" rx="2"/><path class="i-line" d="M25 75 V80 M19 80 H31"/>
+              <rect class="i-node" x="162" y="8" width="26" height="17" rx="2"/><path class="i-line" d="M175 25 V30 M169 30 H181"/>
+              <rect class="i-node" x="162" y="58" width="26" height="17" rx="2"/><path class="i-line" d="M175 75 V80 M169 80 H181"/>
+            </svg>
+            <h3>Комп’ютерні мережі</h3><dl class="map"><dt>Вершини</dt><dd>комп’ютери, роутери</dd><dt>Ребра</dt><dd>кабелі, Wi‑Fi</dd></dl><p>Пакети даних мандрують маршрутами в цьому графі.</p>
+          </div>
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Родинне дерево з трьох поколінь">
+              <path class="i-line" d="M100 14 L55 45 M100 14 L145 45 M55 45 L28 77 M55 45 L82 77 M145 45 L145 77"/>
+              <circle class="i-node" cx="100" cy="14" r="10"/><circle class="i-acc" cx="100" cy="11" r="3"/><path class="i-acc" d="M95 20 Q100 13 105 20 Z"/>
+              <circle class="i-node" cx="55" cy="45" r="10"/><circle class="i-acc" cx="55" cy="42" r="3"/><path class="i-acc" d="M50 51 Q55 44 60 51 Z"/>
+              <circle class="i-node" cx="145" cy="45" r="10"/><circle class="i-acc" cx="145" cy="42" r="3"/><path class="i-acc" d="M140 51 Q145 44 150 51 Z"/>
+              <circle class="i-node" cx="28" cy="77" r="10"/><circle class="i-acc" cx="28" cy="74" r="3"/><path class="i-acc" d="M23 83 Q28 76 33 83 Z"/>
+              <circle class="i-node" cx="82" cy="77" r="10"/><circle class="i-acc" cx="82" cy="74" r="3"/><path class="i-acc" d="M77 83 Q82 76 87 83 Z"/>
+              <circle class="i-node" cx="145" cy="77" r="10"/><circle class="i-acc" cx="145" cy="74" r="3"/><path class="i-acc" d="M140 83 Q145 76 150 83 Z"/>
+            </svg>
+            <h3>Родовід</h3><dl class="map"><dt>Вершини</dt><dd>члени родини</dd><dt>Ребра</dt><dd>батьки → діти</dd></dl><p>Генеалогічне дерево — це справді дерево у сенсі теорії графів.</p>
+          </div>
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Структурна формула етанолу">
+              <path class="i-line" d="M38 45 H186 M70 14 V76 M115 14 V76"/>
+              <circle class="i-h" cx="38" cy="45" r="8"/><text class="i-txt" x="38" y="45">H</text>
+              <circle class="i-h" cx="70" cy="14" r="8"/><text class="i-txt" x="70" y="14">H</text>
+              <circle class="i-h" cx="70" cy="76" r="8"/><text class="i-txt" x="70" y="76">H</text>
+              <circle class="i-h" cx="115" cy="14" r="8"/><text class="i-txt" x="115" y="14">H</text>
+              <circle class="i-h" cx="115" cy="76" r="8"/><text class="i-txt" x="115" y="76">H</text>
+              <circle class="i-h" cx="186" cy="45" r="8"/><text class="i-txt" x="186" y="45">H</text>
+              <circle class="i-c" cx="70" cy="45" r="12"/><text class="i-txt" x="70" y="45">C</text>
+              <circle class="i-c" cx="115" cy="45" r="12"/><text class="i-txt" x="115" y="45">C</text>
+              <circle class="i-o" cx="155" cy="45" r="12"/><text class="i-txt" x="155" y="45">O</text>
+            </svg>
+            <h3>Хімія</h3><dl class="map"><dt>Вершини</dt><dd>атоми</dd><dt>Ребра</dt><dd>хімічні зв’язки</dd></dl><p>Структурна формула молекули — це граф. На малюнку етанол C₂H₅OH.</p>
+          </div>
+          <div class="card">
+            <svg class="ill" viewBox="0 0 200 90" role="img" aria-label="Зв’язки уваги між словами речення">
+              <path class="i-att" stroke-width="4.5" d="M76 54 Q53 20 30 54"/>
+              <path class="i-att" stroke-width="1.5" opacity=".6" d="M76 54 Q98 28 120 54"/>
+              <path class="i-att" stroke-width="3" opacity=".85" d="M76 54 Q122 0 168 54"/>
+              <rect class="i-tok" x="12" y="54" width="36" height="22" rx="5"/><text class="i-txt" x="30" y="65">Кіт</text>
+              <rect class="i-tok" x="58" y="54" width="36" height="22" rx="5"/><text class="i-txt" x="76" y="65">сів</text>
+              <rect class="i-tok" x="105" y="54" width="30" height="22" rx="5"/><text class="i-txt" x="120" y="65">на</text>
+              <rect class="i-tok" x="144" y="54" width="48" height="22" rx="5"/><text class="i-txt" x="168" y="65">килим</text>
+            </svg>
+            <h3>Штучний інтелект (LLM)</h3><dl class="map"><dt>Вершини</dt><dd>нейрони, слова-токени</dd><dt>Ребра</dt><dd>зв’язки з вагами</dd></dl><p>ChatGPT, Claude, Gemini всередині працюють із графами. Детальніше на наступному слайді.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4a: LLM -->
+    <section class="slide" data-topic="Основи">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Графи навколо нас</div>
+          <h2>Графи у великих мовних моделях (LLM)</h2>
+          <ul class="points">
+            <li><b>Нейронна мережа — це орієнтований зважений граф.</b> Вершини — штучні нейрони, дуги — зв’язки між ними, а ваги дуг — параметри моделі. У великих моделях таких ваг сотні мільярдів.</li>
+            <li><b>Обчислювальний граф.</b> Під час навчання бібліотеки на кшталт PyTorch будують граф операцій і проходять його у зворотному напрямі, щоб підправити ваги.</li>
+            <li><b>Механізм уваги (attention).</b> Текст ділиться на токени (слова або їх частини). Кожен токен «дивиться» на інші, і модель обчислює вагу кожного такого зв’язку. Виходить повний зважений орграф між словами.</li>
+            <li><b>Графи знань.</b> Факти зберігають як трійки «сутність → зв’язок → сутність», наприклад Київ → столиця → Україна. Модель може шукати в такому графі потрібні відомості (підхід GraphRAG).</li>
+          </ul>
+        </div>
+        <figure>
+          <svg id="g-att" role="img" aria-label="Ваги уваги від слова «він» до інших слів речення"></svg>
+          <figcaption>Слово «він» найсильніше пов’язане з «Кіт» — так модель розуміє, про кого йдеться. Ваги умовні.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-topic="Шляхи">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Шляхи та цикли</div>
+          <h2>Шлях у графі</h2>
+          <div class="def">
+            <span class="label">Означення</span>
+            <p><b>Шлях</b> — це послідовність вершин, у якій кожні дві сусідні вершини з’єднані ребром.</p>
+          </div>
+          <ul class="points">
+            <li><span class="term">Довжина шляху</span> — кількість ребер у ньому.</li>
+            <li><span class="term">Простий шлях</span> не проходить через жодну вершину двічі.</li>
+            <li>Між двома вершинами може бути кілька шляхів різної довжини.</li>
+          </ul>
+          <div class="formula"><span class="hlt">A → B → E → F</span>, довжина 3</div>
+          <p>Інший шлях з A у F: A → D → E → F, теж довжини 3. А шлях A → D → B → C → E → F має довжину 5.</p>
+        </div>
+        <figure><svg id="g-path" role="img" aria-label="Виділено шлях A-B-E-F"></svg><figcaption>Шлях з A у F виділено помаранчевим</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" data-topic="Шляхи">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Шляхи та цикли</div>
+          <h2>Цикл</h2>
+          <div class="def">
+            <span class="label">Означення</span>
+            <p><b>Цикл</b> — це шлях, який починається і закінчується в одній і тій самій вершині, а ребра в ньому не повторюються.</p>
+          </div>
+          <div class="formula"><span class="hlt">B → C → E → D → B</span>, довжина 4</div>
+          <ul class="points">
+            <li>Найкоротший можливий цикл у простому графі — трикутник (довжина 3), наприклад A → B → D → A.</li>
+            <li>Граф, у якому немає жодного циклу, називають <span class="term">ациклічним</span>.</li>
+            <li>Приклад із життя: кільцевий маршрут автобуса, що повертається на початкову зупинку.</li>
+          </ul>
+        </div>
+        <figure><svg id="g-cycle" role="img" aria-label="Виділено цикл B-C-E-D-B"></svg><figcaption>Цикл повертається у вершину B</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" data-topic="Зв’язність">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Зв’язність</div>
+          <h2>Зв’язний граф</h2>
+          <div class="def">
+            <span class="label">Означення</span>
+            <p>Граф називається <b>зв’язним</b>, якщо між будь-якими двома його вершинами існує шлях.</p>
+          </div>
+          <p>Інакше кажучи, з будь-якої вершини можна «дійти» до будь-якої іншої, рухаючись по ребрах.</p>
+          <p>Якщо прибрати ребро C–D, граф розпадеться на дві частини: з A вже не можна потрапити в E. Такий граф <span class="hlt">незв’язний</span>.</p>
+          <p class="lead">Приклад: якщо міст закрили на ремонт, частина міста може стати недосяжною — граф доріг втратив зв’язність.</p>
+        </div>
+        <div class="pair">
+          <figure><svg id="g-conn" role="img" aria-label="Зв’язний граф"></svg><figcaption>зв’язний</figcaption></figure>
+          <figure><svg id="g-disc" role="img" aria-label="Незв’язний граф"></svg><figcaption>незв’язний</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" data-topic="Зв’язність">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Зв’язність</div>
+          <h2>Компоненти зв’язності</h2>
+          <div class="def">
+            <span class="label">Означення</span>
+            <p><b>Компонента зв’язності</b> — це найбільша зв’язна частина графа: усередині неї між будь-якими вершинами є шлях, а з іншими частинами вона не з’єднана.</p>
+          </div>
+          <ul class="points">
+            <li>Зв’язний граф має рівно <b>одну</b> компоненту.</li>
+            <li>Ізольована вершина — теж окрема компонента.</li>
+            <li>На малюнку <b>3 компоненти</b>: {A, B, C, D}, {E, F, G} і {H}.</li>
+          </ul>
+          <p class="lead">У соцмережі компонента — це група людей, між якими є ланцюжок знайомств.</p>
+        </div>
+        <figure><svg id="g-comp" role="img" aria-label="Граф з трьома компонентами зв’язності"></svg><figcaption>Кожну компоненту позначено своїм кольором</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide" data-topic="Види графів">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Види графів</div>
+          <h2>Дерево</h2>
+          <div class="def">
+            <span class="label">Означення</span>
+            <p><b>Дерево</b> — це зв’язний граф без циклів.</p>
+          </div>
+          <ul class="points">
+            <li>Дерево з <b>n</b> вершинами завжди має <b>n − 1</b> ребро.</li>
+            <li>Між будь-якими двома вершинами дерева є <b>рівно один</b> простий шлях.</li>
+            <li>Якщо видалити будь-яке ребро, дерево стане незв’язним. Якщо додати ребро — з’явиться цикл.</li>
+            <li>Виділену вершину називають <span class="term">коренем</span>, а вершини степеня 1 — <span class="term">листками</span>.</li>
+          </ul>
+          <p class="lead">Приклади: папки на диску, родовід, структура турніру «на вибування».</p>
+        </div>
+        <figure><svg id="g-tree" role="img" aria-label="Дерево з семи вершин"></svg><figcaption>7 вершин, 6 ребер, 4 листки</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide" data-topic="Види графів">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Види графів</div>
+          <h2>Неорієнтований і орієнтований граф</h2>
+          <ul class="points">
+            <li><span class="term">Неорієнтований граф</span>: ребро A–B означає зв’язок в обидва боки. Приклад — дружба: якщо Аня дружить з Богданом, то й Богдан дружить з Анею.</li>
+            <li><span class="term">Орієнтований граф</span> (орграф): кожне ребро має напрям і називається <b>дугою</b>. A → B не означає B → A. Приклад — підписки в Instagram або вулиці з одностороннім рухом.</li>
+            <li>В орграфі розрізняють <b>вхідний</b> і <b>вихідний</b> степінь вершини. Для A на малюнку: вихідний 2, вхідний 1.</li>
+          </ul>
+        </div>
+        <div class="pair">
+          <figure><svg id="g-undir" role="img" aria-label="Неорієнтований граф"></svg><figcaption>неорієнтований</figcaption></figure>
+          <figure><svg id="g-dir" role="img" aria-label="Орієнтований граф"></svg><figcaption>орієнтований</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10a: handshake lemma -->
+    <section class="slide" data-topic="Види графів">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Неорієнтовані графи</div>
+          <h2>Лема про рукостискання</h2>
+          <div class="def">
+            <span class="label">Лема</span>
+            <p>У <b>неорієнтованому</b> графі сума степенів усіх вершин дорівнює подвоєній кількості ребер.</p>
+          </div>
+          <div class="formula">deg(v₁) + deg(v₂) + … + deg(vₙ) = 2 · |E|</div>
+          <p>Кожне ребро має два кінці, тому його рахують двічі: по разу для кожної з двох вершин.</p>
+          <div class="formula">2 + 4 + 2 + 3 + 3 = 14 = 2 · 7</div>
+          <ul class="points">
+            <li>Звідки назва: якщо кожен гість рахує, скільки рук потиснув, то сума всіх чисел удвічі більша за кількість рукостискань.</li>
+            <li>Наслідок: кількість вершин з непарним степенем завжди парна.</li>
+            <li>В <span class="term">орієнтованому</span> графі діє інше правило: сума вихідних степенів = сума вхідних степенів = кількість дуг.</li>
+          </ul>
+        </div>
+        <figure><svg id="g-hand" role="img" aria-label="Граф зі степенями вершин для леми про рукостискання"></svg><figcaption>5 вершин, 7 ребер, сума степенів 14</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide" data-topic="Види графів">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Види графів</div>
+          <h2>Зважений граф</h2>
+          <div class="def">
+            <span class="label">Означення</span>
+            <p><b>Зважений граф</b> — граф, у якому кожному ребру приписано число, яке називають <span class="term">вагою</span>.</p>
+          </div>
+          <ul class="points">
+            <li>Вага може означати відстань у км, час у дорозі, ціну квитка, пропускну здатність кабелю.</li>
+            <li><span class="term">Довжина шляху</span> у зваженому графі — сума ваг його ребер.</li>
+          </ul>
+          <p>Київ → Умань напряму: <span class="hlt">210 км</span>. Через Житомир і Вінницю: 140 + 130 + 160 = 430 км. Навігатор обере перший шлях.</p>
+          <p class="tap">Відстані автошляхами приблизні.</p>
+        </div>
+        <figure><svg id="g-w" role="img" aria-label="Зважений граф міст України"></svg><figcaption>Вага ребра — відстань у кілометрах</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="slide" data-topic="Представлення в пам’яті">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Представлення в пам’яті</div>
+          <h2>Як «пояснити» граф комп’ютеру</h2>
+          <p class="lead">Комп’ютер не бачить малюнка. Граф треба записати у вигляді таблиці чисел або списків.</p>
+          <p>Два найпоширеніші способи:</p>
+          <ul class="points">
+            <li><span class="term">Матриця суміжності</span> — квадратна таблиця n × n, де на перетині рядка i і стовпця j стоїть 1, якщо вершини i та j з’єднані.</li>
+            <li><span class="term">Список суміжності</span> — для кожної вершини зберігається перелік її сусідів.</li>
+          </ul>
+          <p>Далі розглянемо обидва способи на одному й тому самому графі.</p>
+        </div>
+        <figure><svg id="g-mem" role="img" aria-label="Граф з вершинами A, B, C, D, E"></svg><figcaption>Приклад: 5 вершин, 5 ребер</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="slide" data-topic="Представлення в пам’яті">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Представлення в пам’яті</div>
+          <h2>Матриця суміжності</h2>
+          <p>Рядки й стовпці відповідають вершинам. <b>1</b> — ребро є, <b>0</b> — ребра немає.</p>
+          <div class="scroll-x">
+            <table class="matrix" id="matrix" aria-label="Матриця суміжності"></table>
+          </div>
+          <p class="tap">Натисніть на одиницю, щоб побачити ребро на графі.</p>
+          <ul class="points">
+            <li>Матриця неорієнтованого графа <b>симетрична</b> відносно головної діагоналі.</li>
+            <li>Перевірити, чи є ребро між i та j, можна миттєво: глянути в клітинку [i][j].</li>
+            <li>Займає <b>n²</b> комірок навіть тоді, коли ребер мало.</li>
+          </ul>
+        </div>
+        <div class="text">
+          <figure><svg id="g-mat" role="img" aria-label="Граф для матриці суміжності"></svg></figure>
+<pre class="code"><span class="c">// C++: матриця суміжності</span>
+<span class="k">int</span> matrix[5][5] = {
+  {0, 1, 1, 0, 0},  <span class="c">// A</span>
+  {1, 0, 1, 1, 0},  <span class="c">// B</span>
+  {1, 1, 0, 0, 0},  <span class="c">// C</span>
+  {0, 1, 0, 0, 1},  <span class="c">// D</span>
+  {0, 0, 0, 1, 0}   <span class="c">// E</span>
+};</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section class="slide" data-topic="Представлення в пам’яті">
+      <div class="inner">
+        <div class="text">
+          <div class="eyebrow">Представлення в пам’яті</div>
+          <h2>Список суміжності</h2>
+          <p>Для кожної вершини записуємо лише тих, з ким вона з’єднана. Вершини пронумеровані з 0, щоб номер вершини був індексом у векторі: <code>graph[1]</code> — сусіди вершини 1.</p>
+          <div class="adj" id="adj"></div>
+          <p class="tap">Натисніть на рядок, щоб підсвітити вершину та її сусідів.</p>
+          <ul class="points">
+            <li>Займає пам’ять пропорційно <b>n + m</b> (вершини + ребра) — економно для розріджених графів.</li>
+            <li>Зручно перебирати всіх сусідів вершини.</li>
+            <li>Щоб перевірити ребро i–j, доводиться переглядати список вершини i.</li>
+          </ul>
+        </div>
+        <div class="text">
+          <figure><svg id="g-list" role="img" aria-label="Граф для списку суміжності"></svg></figure>
+<pre class="code"><span class="c">// C++: вектор векторів</span>
+<span class="k">vector</span>&lt;<span class="k">vector</span>&lt;<span class="k">int</span>&gt;&gt; graph = {
+  {1, 2},     <span class="c">// 0</span>
+  {0, 2, 3},  <span class="c">// 1</span>
+  {0, 1},     <span class="c">// 2</span>
+  {1, 4},     <span class="c">// 3</span>
+  {3}         <span class="c">// 4</span>
+};</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15 -->
+    <section class="slide" data-topic="Представлення в пам’яті">
+      <div class="inner wide">
+        <div class="text">
+          <div class="eyebrow">Представлення в пам’яті</div>
+          <h2>Що обрати?</h2>
+        </div>
+        <div class="scroll-x">
+          <table class="compare">
+            <thead><tr><th></th><th>Матриця суміжності</th><th>Список суміжності</th></tr></thead>
+            <tbody>
+              <tr><th>Пам’ять</th><td><span class="bad">n²</span> комірок завжди</td><td><span class="good">n + m</span> — лише наявні ребра</td></tr>
+              <tr><th>Чи є ребро i–j?</th><td><span class="good">Миттєво</span>: matrix[i][j]</td><td>Перегляд списку сусідів i</td></tr>
+              <tr><th>Усі сусіди вершини</th><td>Перегляд усього рядка (n клітинок)</td><td><span class="good">Одразу</span> готовий список</td></tr>
+              <tr><th>Орієнтований граф</th><td>matrix[i][j] = 1, якщо є дуга i → j; матриця вже не симетрична</td><td>У список i пишемо лише ті вершини, куди веде дуга з i</td></tr>
+              <tr><th>Зважений граф</th><td>Замість 1 записуємо вагу ребра, замість 0 — ∞ або 0</td><td>Зберігаємо пари (сусід, вага): 'A': [('B', 5), ('C', 2)]</td></tr>
+              <tr><th>Коли краще</th><td>Невеликі або щільні графи, де ребер багато</td><td>Великі розріджені графи: соцмережі, карти доріг</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lead">Граф із 1000 вершин і 3000 ребер: матриця займе 1 000 000 комірок, а список — лише близько 7000 записів (кожне ребро записано двічі).</p>
+      </div>
+    </section>
+
+    <!-- 16 -->
+    <section class="slide" data-topic="Самоперевірка">
+      <div class="inner wide">
+        <div class="text">
+          <div class="eyebrow">Самоперевірка</div>
+          <h2>Перевір себе</h2>
+        </div>
+        <div class="quiz">
+          <details><summary><span class="n">1</span><span>Скільки ребер має дерево з 10 вершинами?</span></summary><p>9 ребер, бо в дереві з n вершин рівно n − 1 ребро.</p></details>
+          <details><summary><span class="n">2</span><span>У графі 6 ребер. Чому дорівнює сума степенів усіх вершин?</span></summary><p>12, бо сума степенів дорівнює 2 · |E|.</p></details>
+          <details><summary><span class="n">3</span><span>Яким графом зручно описати підписки в соцмережі: орієнтованим чи неорієнтованим?</span></summary><p>Орієнтованим: якщо ви підписані на когось, це не означає, що він підписаний на вас.</p></details>
+          <details><summary><span class="n">4</span><span>Граф має 4 компоненти зв’язності. Чи є він зв’язним?</span></summary><p>Ні. Зв’язний граф має рівно одну компоненту.</p></details>
+          <details><summary><span class="n">5</span><span>Як за матрицею суміжності відрізнити неорієнтований граф?</span></summary><p>Його матриця симетрична: matrix[i][j] = matrix[j][i] для всіх i та j.</p></details>
+          <details><summary><span class="n">6</span><span>Карта доріг країни: 10 000 перехресть, у кожного 3–4 сусіди. Який спосіб зберігання обрати?</span></summary><p>Список суміжності. Матриця мала б 100 000 000 комірок, майже всі з нулями.</p></details>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="controls" aria-label="Навігація слайдами">
+    <button id="prev" type="button" aria-label="Попередній слайд">← <span class="lbl">Назад</span></button>
+    <span class="counter" id="counter" aria-live="polite">1 / 16</span>
+    <button id="next" type="button" class="primary" aria-label="Наступний слайд"><span class="lbl">Далі</span> →</button>
+  </nav>
+</div>
+
+<script>
+(function () {
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function key(a, b) { return a + "-" + b; }
+
+  /* g: {vb, nodes:{id:[x,y]}, edges:[[a,b,w]], directed, r, hlEdges:[], hlNodes:[], comp:{}, showDeg, small, notes, root} */
+  function draw(id, g) {
+    var svg = document.getElementById(id);
+    if (!svg) return;
+    svg.setAttribute("viewBox", g.vb);
+    svg.innerHTML = "";
+    var R = g.r || 20;
+    var hlE = (g.hlEdges || []).map(function (s) { return s; });
+    function isHl(a, b) {
+      return hlE.indexOf(key(a, b)) >= 0 || (!g.directed && hlE.indexOf(key(b, a)) >= 0);
+    }
+    if (g.directed) {
+      var defs = el("defs", {}, svg);
+      ["n", "h"].forEach(function (t) {
+        var m = el("marker", { id: id + "-ar-" + t, viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "11", markerHeight: "11", markerUnits: "userSpaceOnUse", orient: "auto" }, defs);
+        el("path", { d: "M0,0 L10,5 L0,10 z", "class": "arrowhead" + (t === "h" ? " hl" : "") }, m);
+      });
+    }
+    var eg = el("g", {}, svg), ng = el("g", {}, svg), lg = el("g", {}, svg);
+    var deg = {};
+    g.edges.forEach(function (e) {
+      var a = e[0], b = e[1], w = e[2];
+      deg[a] = (deg[a] || 0) + 1; deg[b] = (deg[b] || 0) + 1;
+      var p1 = g.nodes[a], p2 = g.nodes[b];
+      var dx = p2[0] - p1[0], dy = p2[1] - p1[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      var end = R + (g.directed ? 2 : 0);
+      var cls = "edge";
+      var hl = isHl(a, b);
+      if (hl) cls += " hl";
+      if (g.comp) cls += " c" + g.comp[a];
+      var line = el("line", {
+        x1: p1[0] + ux * R, y1: p1[1] + uy * R, x2: p2[0] - ux * end, y2: p2[1] - uy * end,
+        "class": cls, "data-a": a, "data-b": b
+      }, eg);
+      if (g.directed) line.setAttribute("marker-end", "url(#" + id + "-ar-" + (hl ? "h" : "n") + ")");
+      if (w != null) {
+        var t = el("text", { x: (p1[0] + p2[0]) / 2, y: (p1[1] + p2[1]) / 2, "class": "wlabel" }, lg);
+        t.textContent = w;
+      }
+    });
+    Object.keys(g.nodes).forEach(function (n) {
+      var p = g.nodes[n];
+      var cls = "node";
+      if ((g.hlNodes || []).indexOf(n) >= 0) cls += " hl";
+      if (g.comp) cls += " c" + g.comp[n];
+      if (g.root === n) cls += " root";
+      if (g.small) cls += " small";
+      var grp = el("g", { "class": cls, "data-n": n }, ng);
+      el("circle", { cx: p[0], cy: p[1], r: R }, grp);
+      var label = el("text", { x: p[0], y: g.small ? p[1] + R + 14 : p[1] }, grp);
+      label.textContent = g.labels ? g.labels[n] : n;
+      if (g.showDeg) {
+        /* place the label on the side of the vertex that is free of edges */
+        var vx = 0, vy = 0;
+        g.edges.forEach(function (e) {
+          var o = e[0] == n ? e[1] : e[1] == n ? e[0] : null;
+          if (o == null) return;
+          var q = g.nodes[o], ddx = q[0] - p[0], ddy = q[1] - p[1], dl = Math.hypot(ddx, ddy);
+          vx += ddx / dl; vy += ddy / dl;
+        });
+        var vl = Math.hypot(vx, vy);
+        if (vl < 0.2) { vx = 0; vy = 1; vl = 1; }
+        var off = R + 17;
+        var sh = (g.degShift && g.degShift[n]) || [0, 0];
+        var d = el("text", { x: p[0] - vx / vl * off + sh[0], y: p[1] - vy / vl * off + sh[1], "class": "deg" }, grp);
+        d.textContent = "deg " + (deg[n] || 0);
+      }
+    });
+    (g.notes || []).forEach(function (nt) {
+      el("path", { d: "M" + nt.from.join(",") + " L" + nt.to.join(","), "class": "note-line" }, lg);
+      var t = el("text", { x: nt.from[0], y: nt.from[1], "class": "note", "text-anchor": nt.anchor || "middle" }, lg);
+      t.textContent = nt.text;
+    });
+    return svg;
+  }
+
+  var five = { 1: [70, 80], 2: [220, 50], 3: [370, 95], 4: [120, 215], 5: [300, 220] };
+  var fiveE = [[1, 2], [1, 4], [2, 3], [2, 4], [2, 5], [3, 5], [4, 5]];
+
+  draw("g-title", {
+    vb: "0 0 440 300", r: 22,
+    nodes: { A: [60, 70], B: [210, 40], C: [380, 80], D: [110, 220], E: [270, 200], F: [390, 250] },
+    edges: [["A", "B"], ["B", "C"], ["A", "D"], ["B", "D"], ["B", "E"], ["C", "E"], ["D", "E"], ["E", "F"]],
+    hlEdges: ["A-B", "B-E", "E-F"], hlNodes: ["A", "B", "E", "F"]
+  });
+  draw("g-def", {
+    vb: "0 0 440 290", nodes: five, edges: fiveE,
+    notes: [
+      { from: [60, 22], to: [62, 58], text: "вершина" },
+      { from: [395, 185], to: [338, 160], text: "ребро", anchor: "start" }
+    ]
+  });
+  draw("g-deg", { vb: "0 0 440 280", nodes: five, edges: fiveE, showDeg: true, hlNodes: ["2"],
+    degShift: { 1: [0, -14], 3: [0, -16], 4: [0, 7] } });
+  draw("g-hand", { vb: "0 0 440 280", nodes: five, edges: fiveE, showDeg: true });
+
+  // attention diagram: arcs from one token to the others, thickness = weight
+  (function () {
+    var svg = document.getElementById("g-att");
+    if (!svg) return;
+    var toks = ["Кіт", "сів", "на", "килим,", "бо", "він", "втомився"];
+    var w = [0.62, 0.08, 0.02, 0.06, 0.03, null, 0.19];
+    var src = 5, gap = 8, y = 200, h = 34, x = 10, pos = [];
+    toks.forEach(function (t) {
+      var wd = t.length * 10 + 20;
+      pos.push({ x: x, w: wd, c: x + wd / 2 });
+      x += wd + gap;
+    });
+    var W = x - gap + 10;
+    svg.setAttribute("viewBox", "0 35 " + W + " 210");
+    var arcs = el("g", {}, svg), labels = el("g", {}, svg), row = el("g", {}, svg);
+    pos.forEach(function (p, i) {
+      if (i === src) return;
+      var a = pos[src].c, b = p.c, dist = Math.abs(a - b);
+      var cy = y - Math.min(330, dist * 0.95);
+      el("path", {
+        d: "M" + a + " " + y + " Q" + (a + b) / 2 + " " + cy + " " + b + " " + y,
+        "class": "att", "stroke-width": (1.2 + w[i] * 11).toFixed(1), opacity: (0.35 + w[i] * 1.05).toFixed(2)
+      }, arcs);
+      var t = el("text", { x: (a + b) / 2, y: (y + cy) / 2 - 4, "class": "att-w" }, labels);
+      t.textContent = w[i].toFixed(2);
+    });
+    pos.forEach(function (p, i) {
+      var g = el("g", { "class": "tok" + (i === src ? " src" : "") + (i === 0 ? " top" : "") }, row);
+      el("rect", { x: p.x, y: y, width: p.w, height: h, rx: 7 }, g);
+      var t = el("text", { x: p.c, y: y + h / 2 }, g);
+      t.textContent = toks[i];
+    });
+  })();
+
+  var six = { A: [60, 70], B: [210, 40], C: [380, 80], D: [110, 220], E: [270, 210], F: [400, 250] };
+  var sixE = [["A", "B"], ["B", "C"], ["A", "D"], ["B", "D"], ["B", "E"], ["C", "E"], ["D", "E"], ["E", "F"]];
+  draw("g-path", { vb: "0 0 450 290", nodes: six, edges: sixE, hlEdges: ["A-B", "B-E", "E-F"], hlNodes: ["A", "B", "E", "F"] });
+  draw("g-cycle", { vb: "0 0 450 290", nodes: six, edges: sixE, hlEdges: ["B-C", "C-E", "E-D", "D-B"], hlNodes: ["B", "C", "D", "E"] });
+
+  var cn = { A: [40, 50], B: [140, 40], C: [90, 140], D: [190, 150], E: [160, 240], F: [50, 240] };
+  draw("g-conn", { vb: "0 0 230 280", r: 18, nodes: cn, edges: [["A", "B"], ["A", "C"], ["B", "C"], ["C", "D"], ["D", "E"], ["E", "F"]] });
+  draw("g-disc", { vb: "0 0 230 280", r: 18, nodes: cn, edges: [["A", "B"], ["A", "C"], ["B", "C"], ["D", "E"], ["E", "F"]] });
+
+  draw("g-comp", {
+    vb: "0 0 460 270",
+    nodes: { A: [50, 60], B: [160, 40], C: [100, 150], D: [190, 165], E: [290, 50], F: [410, 80], G: [340, 160], H: [270, 235] },
+    edges: [["A", "B"], ["B", "C"], ["A", "C"], ["C", "D"], ["E", "F"], ["F", "G"]],
+    comp: { A: 1, B: 1, C: 1, D: 1, E: 2, F: 2, G: 2, H: 3 }
+  });
+
+  draw("g-tree", {
+    vb: "0 0 440 270", root: "1",
+    nodes: { 1: [220, 40], 2: [115, 130], 3: [325, 130], 4: [50, 225], 5: [175, 225], 6: [270, 225], 7: [390, 225] },
+    edges: [[1, 2], [1, 3], [2, 4], [2, 5], [3, 6], [3, 7]],
+    notes: [{ from: [320, 30], to: [244, 38], text: "корінь", anchor: "start" }]
+  });
+
+  var dn = { A: [50, 60], B: [180, 50], C: [180, 200], D: [50, 210] };
+  draw("g-undir", { vb: "0 0 230 260", r: 20, nodes: dn, edges: [["A", "B"], ["B", "C"], ["C", "A"], ["A", "D"], ["D", "C"]] });
+  draw("g-dir", { vb: "0 0 230 260", r: 20, nodes: dn, edges: [["A", "B"], ["B", "C"], ["C", "A"], ["A", "D"], ["D", "C"]], directed: true });
+
+  draw("g-w", {
+    vb: "0 0 460 300", r: 9, small: true,
+    nodes: { K: [300, 50], Z: [110, 80], V: [80, 230], C: [420, 170], U: [270, 260] },
+    labels: { K: "Київ", Z: "Житомир", V: "Вінниця", C: "Черкаси", U: "Умань" },
+    edges: [["K", "Z", 140], ["K", "C", 190], ["K", "U", 210], ["Z", "V", 130], ["V", "U", 160], ["C", "U", 190], ["K", "V", 270]],
+    hlEdges: ["K-U"], hlNodes: ["K", "U"]
+  });
+
+  var mem = { A: [70, 70], B: [220, 60], C: [140, 200], D: [350, 140], E: [380, 260] };
+  var memE = [["A", "B"], ["A", "C"], ["B", "C"], ["B", "D"], ["D", "E"]];
+  draw("g-mem", { vb: "0 0 440 300", nodes: mem, edges: memE });
+  var svgMat = draw("g-mat", { vb: "0 0 440 300", nodes: mem, edges: memE });
+  var NUM = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+  var svgList = draw("g-list", { vb: "0 0 440 300", nodes: mem, edges: memE, labels: NUM });
+
+  var V = ["A", "B", "C", "D", "E"];
+  function adjacent(a, b) {
+    return memE.some(function (e) { return (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a); });
+  }
+  function clearHl(svg) {
+    svg.querySelectorAll(".hl, .sel").forEach(function (x) { x.classList.remove("hl", "sel"); });
+  }
+  function hlEdge(svg, a, b) {
+    svg.querySelectorAll("line").forEach(function (l) {
+      var la = l.getAttribute("data-a"), lb = l.getAttribute("data-b");
+      if ((la === a && lb === b) || (la === b && lb === a)) l.classList.add("hl");
+    });
+  }
+  function hlNode(svg, n, cls) {
+    var g = svg.querySelector('[data-n="' + n + '"]');
+    if (g) g.classList.add(cls || "hl");
+  }
+
+  // matrix
+  var tbl = document.getElementById("matrix");
+  var html = "<thead><tr><th></th>" + V.map(function (v) { return '<th scope="col" data-col="' + v + '">' + v + "</th>"; }).join("") + "</tr></thead><tbody>";
+  V.forEach(function (r) {
+    html += '<tr><th scope="row" data-row="' + r + '">' + r + "</th>";
+    V.forEach(function (c) {
+      var one = adjacent(r, c);
+      html += '<td class="' + (one ? "one" : "") + (r === c ? " diag" : "") + '" data-r="' + r + '" data-c="' + c + '"' + (one ? ' tabindex="0" role="button" aria-label="Ребро ' + r + "–" + c + '"' : "") + ">" + (one ? 1 : 0) + "</td>";
+    });
+    html += "</tr>";
+  });
+  tbl.innerHTML = html + "</tbody>";
+  function pickCell(td) {
+    tbl.querySelectorAll(".on").forEach(function (x) { x.classList.remove("on"); });
+    clearHl(svgMat);
+    var r = td.getAttribute("data-r"), c = td.getAttribute("data-c");
+    td.classList.add("on");
+    var mirror = tbl.querySelector('td[data-r="' + c + '"][data-c="' + r + '"]');
+    if (mirror) mirror.classList.add("on");
+    tbl.querySelector('th[data-row="' + r + '"]').classList.add("on");
+    tbl.querySelector('th[data-col="' + c + '"]').classList.add("on");
+    hlEdge(svgMat, r, c); hlNode(svgMat, r); hlNode(svgMat, c);
+  }
+  tbl.addEventListener("click", function (e) {
+    var td = e.target.closest("td.one"); if (td) pickCell(td);
+  });
+  tbl.addEventListener("keydown", function (e) {
+    var td = e.target.closest("td.one");
+    if (td && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pickCell(td); }
+  });
+  pickCell(tbl.querySelector('td[data-r="B"][data-c="D"]'));
+
+  // adjacency list
+  var adj = document.getElementById("adj");
+  V.forEach(function (v) {
+    var nb = V.filter(function (u) { return adjacent(v, u); });
+    var b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("data-v", v);
+    b.innerHTML = '<span class="v">' + NUM[v] + '</span><span class="arrow">→</span>' + nb.map(function (u) { return '<span class="cell">' + NUM[u] + "</span>"; }).join("");
+    adj.appendChild(b);
+  });
+  function pickRow(btn) {
+    adj.querySelectorAll(".on").forEach(function (x) { x.classList.remove("on"); });
+    btn.classList.add("on");
+    clearHl(svgList);
+    var v = btn.getAttribute("data-v");
+    hlNode(svgList, v, "sel");
+    V.forEach(function (u) { if (adjacent(v, u)) { hlEdge(svgList, v, u); hlNode(svgList, u); } });
+  }
+  adj.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (b) pickRow(b);
+  });
+  pickRow(adj.querySelector('[data-v="B"]'));
+
+  // navigation
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var cur = 0;
+  var prev = document.getElementById("prev"), next = document.getElementById("next");
+  var counter = document.getElementById("counter"), bar = document.getElementById("bar"), topic = document.getElementById("topic");
+  function go(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, k) { s.hidden = k !== i; });
+    cur = i;
+    slides[i].scrollTop = 0;
+    counter.textContent = (i + 1) + " / " + slides.length;
+    bar.style.width = ((i + 1) / slides.length * 100) + "%";
+    topic.textContent = slides[i].getAttribute("data-topic") || "";
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    var h = "#s" + (i + 1);
+    if (location.hash !== h) {
+      try { history.replaceState(null, "", h); } catch (e) { /* ignore */ }
+    }
+  }
+  function fromHash() {
+    var m = /^#s(\d+)$/.exec(location.hash);
+    return m ? parseInt(m[1], 10) - 1 : 0;
+  }
+  prev.addEventListener("click", function () { go(cur - 1); });
+  next.addEventListener("click", function () { go(cur + 1); });
+  window.addEventListener("hashchange", function () { var i = fromHash(); if (i !== cur) go(i); });
+  document.addEventListener("keydown", function (e) {
+    if (e.target.closest && e.target.closest("summary, td.one, .adj button")) {
+      if (e.key === "Enter" || e.key === " ") return;
+    }
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); go(cur + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(cur - 1); }
+    else if (e.key === "Home") { go(0); }
+    else if (e.key === "End") { go(slides.length - 1); }
+  });
+  var sx = 0, sy = 0, tracking = false;
+  var stage = document.getElementById("stage");
+  stage.addEventListener("touchstart", function (e) {
+    if (e.touches.length !== 1 || e.target.closest(".scroll-x, pre")) { tracking = false; return; }
+    tracking = true; sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, { passive: true });
+  stage.addEventListener("touchend", function (e) {
+    if (!tracking) return;
+    tracking = false;
+    var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(cur + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  go(fromHash());
+})();
+</script>
+
+</body></html>
