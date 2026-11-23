@@ -212,6 +212,7 @@ pre.code {
   border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; overflow-x: auto; color: var(--ink);
 }
 .code .k { color: var(--accent); } .code .s { color: var(--c3); } .code .c { color: var(--muted); font-style: italic; }
+p code { font-family: var(--font-mono); font-size: .92em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
 .tap { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
 .compare { width: 100%; font-size: 15px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .compare th, .compare td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -678,7 +679,7 @@ pre.code {
         <div class="text">
           <div class="eyebrow">Представлення в пам’яті</div>
           <h2>Список суміжності</h2>
-          <p>Для кожної вершини записуємо лише тих, з ким вона з’єднана.</p>
+          <p>Для кожної вершини записуємо лише тих, з ким вона з’єднана. Вершини пронумеровані з 0, щоб номер вершини був індексом у векторі: <code>graph[1]</code> — сусіди вершини 1.</p>
           <div class="adj" id="adj"></div>
           <p class="tap">Натисніть на рядок, щоб підсвітити вершину та її сусідів.</p>
           <ul class="points">
@@ -689,14 +690,14 @@ pre.code {
         </div>
         <div class="text">
           <figure><svg id="g-list" role="img" aria-label="Граф для списку суміжності"></svg></figure>
-<pre class="code"><span class="c"># Python: словник списків</span>
-<span class="k">graph</span> = {
-  <span class="s">'A'</span>: [<span class="s">'B'</span>, <span class="s">'C'</span>],
-  <span class="s">'B'</span>: [<span class="s">'A'</span>, <span class="s">'C'</span>, <span class="s">'D'</span>],
-  <span class="s">'C'</span>: [<span class="s">'A'</span>, <span class="s">'B'</span>],
-  <span class="s">'D'</span>: [<span class="s">'B'</span>, <span class="s">'E'</span>],
-  <span class="s">'E'</span>: [<span class="s">'D'</span>],
-}</pre>
+<pre class="code"><span class="c">// C++: вектор векторів</span>
+<span class="k">vector</span>&lt;<span class="k">vector</span>&lt;<span class="k">int</span>&gt;&gt; graph = {
+  {1, 2},     <span class="c">// 0</span>
+  {0, 2, 3},  <span class="c">// 1</span>
+  {0, 1},     <span class="c">// 2</span>
+  {1, 4},     <span class="c">// 3</span>
+  {3}         <span class="c">// 4</span>
+};</pre>
         </div>
       </div>
     </section>
@@ -930,7 +931,8 @@ pre.code {
   var memE = [["A", "B"], ["A", "C"], ["B", "C"], ["B", "D"], ["D", "E"]];
   draw("g-mem", { vb: "0 0 440 300", nodes: mem, edges: memE });
   var svgMat = draw("g-mat", { vb: "0 0 440 300", nodes: mem, edges: memE });
-  var svgList = draw("g-list", { vb: "0 0 440 300", nodes: mem, edges: memE });
+  var NUM = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+  var svgList = draw("g-list", { vb: "0 0 440 300", nodes: mem, edges: memE, labels: NUM });
 
   var V = ["A", "B", "C", "D", "E"];
   function adjacent(a, b) {
@@ -989,7 +991,7 @@ pre.code {
     var b = document.createElement("button");
     b.type = "button";
     b.setAttribute("data-v", v);
-    b.innerHTML = '<span class="v">' + v + '</span><span class="arrow">→</span>' + nb.map(function (u) { return '<span class="cell">' + u + "</span>"; }).join("");
+    b.innerHTML = '<span class="v">' + NUM[v] + '</span><span class="arrow">→</span>' + nb.map(function (u) { return '<span class="cell">' + NUM[u] + "</span>"; }).join("");
     adj.appendChild(b);
   });
   function pickRow(btn) {
