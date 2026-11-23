@@ -827,7 +827,8 @@ p code { font-family: var(--font-mono); font-size: .92em; background: var(--acce
         var vl = Math.hypot(vx, vy);
         if (vl < 0.2) { vx = 0; vy = 1; vl = 1; }
         var off = R + 17;
-        var d = el("text", { x: p[0] - vx / vl * off, y: p[1] - vy / vl * off, "class": "deg" }, grp);
+        var sh = (g.degShift && g.degShift[n]) || [0, 0];
+        var d = el("text", { x: p[0] - vx / vl * off + sh[0], y: p[1] - vy / vl * off + sh[1], "class": "deg" }, grp);
         d.textContent = "deg " + (deg[n] || 0);
       }
     });
@@ -855,7 +856,8 @@ p code { font-family: var(--font-mono); font-size: .92em; background: var(--acce
       { from: [395, 185], to: [338, 160], text: "ребро", anchor: "start" }
     ]
   });
-  draw("g-deg", { vb: "0 0 440 280", nodes: five, edges: fiveE, showDeg: true, hlNodes: ["2"] });
+  draw("g-deg", { vb: "0 0 440 280", nodes: five, edges: fiveE, showDeg: true, hlNodes: ["2"],
+    degShift: { 1: [0, -14], 3: [0, -16], 4: [0, 7] } });
   draw("g-hand", { vb: "0 0 440 280", nodes: five, edges: fiveE, showDeg: true });
 
   // attention diagram: arcs from one token to the others, thickness = weight
