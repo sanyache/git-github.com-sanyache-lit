@@ -1,0 +1,689 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тест з динамічного програмування</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: one centred column, one task per screen; DP tables drawn as cell grids like the lesson visualisations. */
+:root{
+  --bg:#F3F5FA; --surface:#FFFFFF; --sunk:#E9EDF5; --ink:#162036; --muted:#5B6579; --line:#D5DCE8;
+  --accent:#2D56C8; --accent-ink:#FFFFFF; --accent-soft:#DFE7FB;
+  --cell:#FFF3D6; --cell-line:#E9B949; --good:#1C8655; --good-soft:#DDF2E7; --bad:#C2413A; --bad-soft:#F9E1DF;
+  --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1420; --surface:#161F31; --sunk:#1D2840; --ink:#E5EAF4; --muted:#9AA5BB; --line:#2B3754;
+  --accent:#86A3FF; --accent-ink:#0E1420; --accent-soft:#24335A;
+  --cell:#3A3020; --cell-line:#C99A35; --good:#4CC28A; --good-soft:#173A2C; --bad:#F07C72; --bad-soft:#41211F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1420; --surface:#161F31; --sunk:#1D2840; --ink:#E5EAF4; --muted:#9AA5BB; --line:#2B3754;
+  --accent:#86A3FF; --accent-ink:#0E1420; --accent-soft:#24335A;
+  --cell:#3A3020; --cell-line:#C99A35; --good:#4CC28A; --good-soft:#173A2C; --bad:#F07C72; --bad-soft:#41211F; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:720px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(1.5rem,5vw,2.1rem);line-height:1.2}
+h2{font-size:1.2rem;line-height:1.3}
+h3{font-size:1rem}
+p{margin:0}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 10px;margin-bottom:8px}
+.bar-in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.bar-title{font-family:var(--f-display);font-size:.85rem;font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress{max-width:720px;margin:8px auto 0;display:flex;gap:3px}
+.progress span{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.progress span.done{background:var(--accent)}
+.progress span.now{background:var(--cell-line)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+@media (max-width:480px){.panel{padding:16px}}
+
+/* buttons & inputs */
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:10px;padding:12px 20px;font-weight:600;background:var(--accent);color:var(--accent-ink);min-height:46px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn.small{padding:8px 14px;min-height:38px;font-size:.92rem}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;align-items:center}
+.actions .spacer{flex:1}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+label.field{display:flex;flex-direction:column;gap:6px;font-weight:500}
+input.text,select{font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:46px;width:100%}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.modes{grid-template-columns:1fr}}
+.mode{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer}
+.mode:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.mode input{margin-top:4px;accent-color:var(--accent)}
+.mode b{display:block}
+.mode small{color:var(--muted);font-size:.85rem;line-height:1.35}
+
+/* question */
+.qhead{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.pts{font-variant-numeric:tabular-nums;font-weight:600;color:var(--muted);font-size:.9rem;white-space:nowrap}
+.qtext{font-size:1.05rem}
+.qtext b{font-weight:600}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;cursor:pointer;background:var(--surface)}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft)}
+
+.match{display:flex;flex-direction:column;gap:10px}
+.match-row{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:10px;align-items:center}
+@media (max-width:520px){.match-row{grid-template-columns:1fr;gap:4px}}
+.match-row .lbl{font-weight:600}
+select{font-family:var(--f-mono);font-size:15px}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+table.dp{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums;margin:0 auto}
+table.dp th{font-family:var(--f-mono);font-size:.75rem;font-weight:600;color:var(--muted);padding:2px 4px;white-space:nowrap;text-align:center}
+table.dp th.rowh{text-align:right}
+table.dp td{width:2.75rem;height:2.6rem;text-align:center;border-radius:7px;background:var(--sunk);font-family:var(--f-mono);font-weight:600;padding:0}
+table.dp td.ask{background:var(--cell);box-shadow:inset 0 0 0 1.5px var(--cell-line)}
+table.dp td.src{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+table.dp td input{width:100%;height:100%;border:0;background:transparent;text-align:center;font:inherit;font-size:16px;color:var(--ink);padding:0;border-radius:7px}
+table.dp td.ok{background:var(--good-soft);box-shadow:inset 0 0 0 1.5px var(--good)}
+table.dp td.no{background:var(--bad-soft);box-shadow:inset 0 0 0 1.5px var(--bad);line-height:1.05}
+table.dp td s.wrong{display:block;font-size:.68rem;font-weight:400;color:var(--bad)}
+.review-note{font-size:.85rem;color:var(--muted)}
+.tables{display:flex;flex-wrap:wrap;gap:20px;justify-content:center}
+.tables figure{margin:0;display:flex;flex-direction:column;gap:6px;align-items:center;min-width:0}
+.tables figcaption{font-family:var(--f-mono);font-size:.82rem;color:var(--muted)}
+
+.marks{display:grid;grid-template-columns:repeat(8,minmax(0,4rem));gap:6px;justify-content:center}
+@media (max-width:560px){.marks{grid-template-columns:repeat(4,minmax(0,4rem))}}
+.mark{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.mark .i{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.mark .v{font-family:var(--f-mono);font-weight:700;font-size:1.15rem}
+.mark .t{font-family:var(--f-mono);font-size:.75rem;color:var(--accent)}
+.mark[aria-pressed="true"]{border-color:var(--cell-line);background:var(--cell)}
+.mark.ok{border-color:var(--good);background:var(--good-soft)}
+.mark.no{border-color:var(--bad);background:var(--bad-soft)}
+
+.code{font-family:var(--f-mono);font-size:.88rem;background:var(--sunk);border-radius:12px;padding:8px 0;overflow-x:auto}
+.code .ln{display:flex;width:100%;min-width:max-content;border:0;background:transparent;color:var(--ink);text-align:left;padding:3px 14px 3px 0;font:inherit;white-space:pre;line-height:1.55}
+.code .ln .no{display:inline-block;width:2.4rem;text-align:right;padding-right:12px;color:var(--muted);user-select:none;flex:none}
+.code button.ln:hover{background:var(--accent-soft)}
+.code .ln[aria-pressed="true"]{background:var(--cell);box-shadow:inset 3px 0 0 var(--cell-line)}
+.code .ln.ok{background:var(--good-soft)}
+.code .ln.no{background:var(--bad-soft)}
+
+input.num{font-family:var(--f-mono);font-size:1.3rem;font-weight:600;width:8rem;text-align:center;padding:10px;border-radius:10px;border:1.5px solid var(--cell-line);background:var(--cell);color:var(--ink)}
+
+.hint{border:1px dashed var(--cell-line);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.hint code{background:var(--sunk);padding:1px 5px;border-radius:5px}
+.feedback{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.feedback.ok{background:var(--good-soft)}
+.feedback.no{background:var(--bad-soft)}
+.feedback.part{background:var(--cell)}
+.feedback b{font-weight:700}
+.note{font-size:.9rem;color:var(--muted)}
+.warn{color:var(--bad);font-size:.92rem}
+
+/* results */
+.score{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end}
+.score .big{font-family:var(--f-display);font-size:3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.score .grade{font-family:var(--f-display);font-size:1.4rem}
+.bars{display:flex;flex-direction:column;gap:10px}
+.barrow{display:grid;grid-template-columns:minmax(0,1fr) 5.5rem;gap:4px 12px;align-items:center}
+.barrow .name{font-weight:500;font-size:.95rem}
+.barrow .val{text-align:right;font-variant-numeric:tabular-nums;font-size:.9rem;color:var(--muted)}
+.barrow .track{grid-column:1/-1;height:10px;border-radius:5px;background:var(--sunk);overflow:hidden}
+.barrow .fill{height:100%;background:var(--accent);border-radius:5px}
+.barrow .fill.weak{background:var(--bad)}
+.barrow a{font-size:.85rem;color:var(--accent)}
+.review{display:flex;flex-direction:column;gap:12px}
+.ritem{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.ritem .top{display:flex;gap:10px;justify-content:space-between;align-items:baseline}
+.chip{font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.chip.ok{background:var(--good-soft);color:var(--good)}
+.chip.no{background:var(--bad-soft);color:var(--bad)}
+.chip.part{background:var(--cell);color:var(--ink)}
+.codebox{font-family:var(--f-mono);font-size:.82rem;background:var(--sunk);border-radius:10px;padding:10px 12px;word-break:break-all;user-select:all}
+ul.plain{margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:4px}
+@media (prefers-reduced-motion:no-preference){.screen{animation:in .25s ease-out}}
+@keyframes in{from{opacity:.6;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+
+<header class="bar" id="bar" hidden>
+  <div class="bar-in">
+    <div class="bar-title" id="barTitle">Динамічне програмування</div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+<main class="wrap" id="app"></main>
+
+<script>
+(() => {
+"use strict";
+const LESSON_BASE = "https://lit-olexandriya.kr.ua/informatics/view.html?id=";
+const STORE_KEY = "dp-test-state-v1";
+const GRADES = [[96,12],[90,11],[84,10],[76,9],[68,8],[60,7],[52,6],[44,5],[36,4],[26,3],[16,2],[0,1]];
+const BLOCKS = [
+  {id:"A", title:"Ідея динамічного програмування", lesson:null},
+  {id:"B", title:"Зайчик і сходинки", lesson:"cpp-stairs"},
+  {id:"C", title:"Коник: найдешевший шлях", lesson:"cpp-grasshopper"},
+  {id:"D", title:"Робот і золоті монети", lesson:"cpp-robot-coins"},
+  {id:"E", title:"Рюкзак грабіжника", lesson:"cpp-backpack"},
+  {id:"F", title:"Підсумок", lesson:null},
+];
+
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function rngFrom(seed){ let a = seed>>>0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a>>>15, 1 | a); t = t + Math.imul(t ^ t>>>7, 61 | t) ^ t; return ((t ^ t>>>14)>>>0) / 4294967296; }; }
+const ri = (r, lo, hi) => lo + Math.floor(r()*(hi-lo+1));
+function shuffle(arr, r){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const store = {
+  get(){ try{ const s = localStorage.getItem(STORE_KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; } },
+  set(v){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(v)); }catch(e){} },
+  clear(){ try{ localStorage.removeItem(STORE_KEY); }catch(e){} }
+};
+
+/* ---------- DP solvers (same algorithms as in the lessons) ---------- */
+function stairs(n, jumps){ const t = Array(n+1).fill(0); t[0]=1; for(let i=1;i<=n;i++) for(const j of jumps) if(i-j>=0) t[i]+=t[i-j]; return t; }
+function hopper(v){
+  const n=v.length, t=Array(n); t[0]=v[0]; t[1]=Math.min(v[0]+v[1], v[1]);
+  for(let i=2;i<n;i++) t[i]=Math.min(t[i-1],t[i-2])+v[i];
+  let c=n-1; const path=[c]; let ambiguous=false;
+  while(c>0){
+    if(c>=2 && t[c-1]===t[c-2]) ambiguous=true;
+    c = (t[c]===t[c-1]+v[c]) ? c-1 : c-2;
+    path.push(c);
+  }
+  return {total:t, path:path.reverse(), ambiguous, valid: path[0]===0};
+}
+function robot(A, f){
+  const n=A.length, m=A[0].length, v=A.map(r=>r.map(()=>0)); v[0][0]=A[0][0];
+  for(let i=1;i<n;i++) v[i][0]=v[i-1][0]+A[i][0];
+  for(let j=1;j<m;j++) v[0][j]=v[0][j-1]+A[0][j];
+  for(let i=1;i<n;i++) for(let j=1;j<m;j++) v[i][j]=f(v[i-1][j],v[i][j-1])+A[i][j];
+  return v;
+}
+function knapsack(items, C){
+  const n=items.length, v=[...Array(n+1)].map(()=>Array(C+1).fill(0));
+  for(let i=1;i<=n;i++){ const {p,w}=items[i-1]; for(let j=1;j<=C;j++) v[i][j] = w>j ? v[i-1][j] : Math.max(v[i-1][j], p+v[i-1][j-w]); }
+  return v;
+}
+
+/* ---------- variant generators ---------- */
+function genHopper(r){
+  for(let k=0;k<5000;k++){
+    const v=[...Array(8)].map(()=>ri(r,1,9));
+    const h=hopper(v);
+    if(h.valid && !h.ambiguous && h.path.length>=4 && h.path.length<=6) return {val:v, ...h};
+  }
+  const v=[2,5,1,8,3,4,9,1]; return {val:v, ...hopper(v)};
+}
+function genKnap(r){
+  for(let k=0;k<5000;k++){
+    const C=ri(r,4,5);
+    const items=[...Array(3)].map(()=>({p:ri(r,3,15), w:ri(r,1,3)}));
+    if(items.reduce((s,x)=>s+x.w,0)<=C) continue;
+    let best=-1, sets=[];
+    for(let mask=0;mask<8;mask++){
+      let p=0,w=0; for(let i=0;i<3;i++) if(mask>>i&1){p+=items[i].p; w+=items[i].w;}
+      if(w>C) continue;
+      if(p>best){best=p; sets=[mask];} else if(p===best) sets.push(mask);
+    }
+    if(sets.length!==1) continue;
+    const bits=[0,1,2].filter(i=>sets[0]>>i&1);
+    if(bits.length<2) continue;
+    const t=knapsack(items,C);
+    if(t[2][C]===t[1][C]) continue; // row 2 should change something
+    return {items, C, table:t, chosen:bits, best};
+  }
+  const items=[{p:6,w:2},{p:10,w:2},{p:12,w:3}]; return {items, C:5, table:knapsack(items,5), chosen:[1,2], best:22};
+}
+
+/* ---------- question bank ---------- */
+function buildQuestions(seed){
+  const r = rngFrom(seed);
+  const Q = [];
+
+  Q.push({id:"A2", block:"A", type:"match", points:10,
+    text:"Зіставте кожне поняття ДП з його прикладом із задачі «Зайчик і сходинки».",
+    left:[["state","Стан"],["base","База"],["trans","Перехід"],["ans","Відповідь"]],
+    right:shuffle([["r1","stair[i] — кількість способів дістатися сходинки i"],["r2","stair[0] = 1, stair[1] = 1"],["r3","stair[i] = stair[i-1] + stair[i-2]"],["r4","stair[n]"]], r),
+    answer:{state:"r1",base:"r2",trans:"r3",ans:"r4"},
+    explanation:"Стан — що зберігаємо в клітинці; база — значення, відомі одразу; перехід — як рахуємо нову клітинку з попередніх; відповідь — яку клітинку виводимо."});
+
+  Q.push({id:"A3", block:"A", type:"multi", points:10,
+    text:"Коли задачу можна розв'язати динамічним програмуванням? Позначте <b>всі</b> правильні умови.",
+    options:shuffle([["a","Відповідь для великої задачі виражається через відповіді для менших підзадач"],["b","Одні й ті самі підзадачі повторюються багато разів"],["c","Вхідні дані мають бути відсортовані"],["d","Є підзадачі, відповідь на які відома одразу (база)"],["e","Програма обов'язково має бути рекурсивною"]], r),
+    answer:["a","b","d"],
+    explanation:"Потрібні менші підзадачі, їх повторення і база. Рекурсія не обов'язкова: усі програми з уроків написані циклами."});
+
+  Q.push({id:"B4", block:"B", type:"bugLine", points:10,
+    text:"Програму запустили з <code>n = 0</code>, і вона аварійно завершилася: вихід за межі масиву. Торкніться рядка, через який це сталося.",
+    code:["int n;","cin>>n;","vector<int> stair (n+1, 0);","stair[0] = 1;","stair[1] = 1;","for(int i=2; i<=n; i++){","    stair[i] += stair[i-1] + stair[i-2];","}","cout<<stair[n];"],
+    answer:5,
+    explanation:"Для n = 0 вектор має лише один елемент, тому stair[1] не існує. Виправлення: if (n >= 1) stair[1] = 1;"});
+
+  // C — grasshopper
+  const H = genHopper(r);
+  Q.push({id:"C1", block:"C", type:"array", points:12,
+    text:"Коник стрибає вперед на 1 або 2 позначки. Під кожною позначкою — її вартість val[i]. Заповніть масив <code>total</code>: найменшу вартість, щоб опинитися на позначці i.",
+    val:H.val, answer:H.total, given:[0],
+    hint:"<code>total[1] = min(val[0] + val[1], val[1])</code>, далі <code>total[i] = min(total[i-1], total[i-2]) + val[i]</code>.",
+    explanation:`total = ${H.total.join(", ")}.`});
+  Q.push({id:"C3", block:"C", type:"cellPath", points:12,
+    text:"Для тих самих позначок знайдіть найдешевший шлях. Торкніться всіх позначок, на яких побував коник.",
+    val:H.val, total:H.total, answer:H.path,
+    hint:"Ідемо з кінця: якщо <code>total[i] == total[i-1] + val[i]</code>, то коник прийшов з i-1, інакше з i-2.",
+    explanation:`Позначки ${H.path.join(", ")}: ${H.path.map(i=>H.val[i]).join(" + ")} = ${H.total[H.total.length-1]}.`});
+
+  // D — robot
+  const A = [...Array(3)].map(()=>[...Array(3)].map(()=>ri(r,1,9)));
+  const vMax = robot(A, Math.max);
+  const askD = []; for(let i=0;i<3;i++) for(let j=0;j<3;j++) if(i||j) askD.push([i,j]);
+  Q.push({id:"D1", block:"D", type:"grid", points:14,
+    text:"Робот іде з лівого верхнього кута в правий нижній, щоразу на одну клітинку <b>вниз</b> або <b>вправо</b>, і збирає монети. Заповніть таблицю <code>val</code>: найбільшу кількість монет, з якою робот може прийти в клітинку.",
+    src:{caption:"A[i][j] — монети", cells:A},
+    caption:"val[i][j]", cells:vMax, ask:askD,
+    rowLabels:["0","1","2"], colLabels:["0","1","2"], cornerLabel:"i \\ j",
+    hint:"Перший рядок і перший стовпчик — накопичені суми. Решта: <code>max(згори, зліва) + A[i][j]</code>.",
+    explanation:`val = ${vMax.map(r=>"["+r.join(", ")+"]").join(" ")}.`});
+
+  // E — knapsack
+  const K = genKnap(r);
+  const askE = []; for(let i=2;i<=3;i++) for(let j=1;j<=K.C;j++) askE.push([i,j]);
+  const itemsHtml = K.items.map((x,i)=>`<li>Предмет ${i+1}: ціна <b>${x.p}</b>, вага <b>${x.w} кг</b></li>`).join("");
+  Q.push({id:"E1", block:"E", type:"grid", points:14,
+    text:`Рюкзак витримує <b>${K.C} кг</b>. Кожен предмет можна взяти лише один раз.<ul class="plain">${itemsHtml}</ul>Заповніть жовті клітинки таблиці <code>val[i][j]</code>: найбільша вартість, якщо розглянуто перші i предметів, а місткість рюкзака j.`,
+    caption:"val[i][j]", cells:K.table, ask:askE,
+    rowLabels:["0: немає", "1: предмет 1", "2: предмет 2", "3: предмет 3"], colLabels:[...Array(K.C+1)].map((_,j)=>"j="+j), cornerLabel:"",
+    hint:"Якщо вага предмета ≤ j: <code>val[i][j] = max(val[i-1][j], price + val[i-1][j-weight])</code>, інакше <code>val[i-1][j]</code>.",
+    explanation:`Рядок 2: ${K.table[2].join(" ")}; рядок 3: ${K.table[3].join(" ")}.`});
+  Q.push({id:"E4", block:"E", type:"single", points:8,
+    text:"Учень замінив у програмі рюкзака <code>price + val[i-1][j-weight]</code> на <code>price + val[i][j-weight]</code>. Що зміниться?",
+    options:shuffle([["a","Один і той самий предмет можна буде покласти кілька разів"],["b","Нічого не зміниться"],["c","Програма завжди виводитиме 0"],["d","Програма вийде за межі масиву"]], r),
+    answer:"a",
+    explanation:"Рядок i вже може містити i-й предмет, тож його ціну буде додано ще раз. Виходить рюкзак, де кожен предмет можна брати скільки завгодно."});
+
+  Q.push({id:"F1", block:"F", type:"match", points:10,
+    text:"Зіставте кожну задачу з її рекурентною формулою.",
+    left:[["stairs","Зайчик і сходинки"],["hopper","Коник: найдешевший шлях"],["robot","Робот і монети"],["bag","Рюкзак 0/1"]],
+    right:shuffle([["f1","x[i] = x[i-1] + x[i-2]"],["f2","x[i] = min(x[i-1], x[i-2]) + c[i]"],["f3","x[i][j] = max(x[i-1][j], x[i][j-1]) + c[i][j]"],["f4","x[i][j] = max(x[i-1][j], p + x[i-1][j-w])"]], r),
+    answer:{stairs:"f1",hopper:"f2",robot:"f3",bag:"f4"},
+    explanation:"Сходинки рахують способи (сума), коник шукає мінімум, робот — максимум зі згори/зліва, рюкзак обирає «брати чи не брати»."});
+  return Q;
+}
+
+/* ---------- scoring ---------- */
+function fraction(q, resp){
+  if(resp==null) return 0;
+  switch(q.type){
+    case "single": return resp===q.answer ? 1 : 0;
+    case "bugLine": return resp===q.answer ? 1 : 0;
+    case "number": return (String(resp).trim()!=="" && Number(resp)===q.answer) ? 1 : 0;
+    case "multi": { const good=resp.filter(x=>q.answer.includes(x)).length, bad=resp.length-good; return Math.max(0,(good-bad)/q.answer.length); }
+    case "match": { const keys=Object.keys(q.answer); return keys.filter(k=>resp[k]===q.answer[k]).length/keys.length; }
+    case "array": { const idx=q.answer.map((_,i)=>i).filter(i=>!q.given.includes(i)); return idx.filter(i=>Number(resp[i])===q.answer[i] && String(resp[i]??"").trim()!=="").length/idx.length; }
+    case "grid": return q.ask.filter(([i,j])=>{ const x=resp[i+","+j]; return x!=null && String(x).trim()!=="" && Number(x)===q.cells[i][j]; }).length/q.ask.length;
+    case "cellPath": { const a=[...resp].sort((x,y)=>x-y); return a.length===q.answer.length && a.every((x,i)=>x===q.answer[i]) ? 1 : 0; }
+  }
+  return 0;
+}
+const round05 = x => Math.round(x*2)/2;
+function award(q, a){ if(!a || !a.submitted) return 0; const f = fraction(q, a.resp); return round05(q.points * f * (a.hint ? 0.5 : 1) * (a.attempt===2 ? 0.5 : 1)); }
+function gradeOf(score){ for(const [min,g] of GRADES) if(score>=min) return g; return 1; }
+const fmtPts = x => String(x).replace(".", ",");
+
+/* ---------- state ---------- */
+let S = null, Q = [];
+function save(){ store.set(S); }
+function newState(name, cls, mode){
+  return { name, cls, mode, seed: Math.floor(Math.random()*90000)+10000, started: Date.now(), finished:null, idx:0, screen:"intro", answers:{}, draft:{} };
+}
+
+/* ---------- top bar ---------- */
+function updateBar(){
+  const bar=$("#bar");
+  const show = S && (S.screen==="q" || S.screen==="block");
+  bar.hidden = !show;
+  if(!show) return;
+  const q = Q[S.idx], b = BLOCKS.find(b=>b.id===q.block);
+  $("#barTitle").textContent = `${S.idx+1} з ${Q.length} · ${b.title}`;
+  $("#progress").innerHTML = Q.map((x,i)=>`<span class="${S.answers[x.id]?.submitted?'done':(i===S.idx?'now':'')}"></span>`).join("");
+}
+
+/* ---------- screens ---------- */
+const app = $("#app");
+function render(){
+  updateBar();
+  window.scrollTo({top:0});
+  if(!S) return renderStart();
+  if(S.screen==="intro") return renderIntro();
+  if(S.screen==="q") return renderQuestion();
+  if(S.screen==="block") return renderBlockDone();
+  if(S.screen==="results") return renderResults();
+}
+
+function renderStart(){
+  const saved = store.get();
+  const resumable = saved && !saved.finished;
+  const finishedSaved = saved && saved.finished;
+  app.innerHTML = `
+  <section class="screen stack" style="padding-top:28px">
+    <div class="stack" style="gap:10px">
+      <div class="eyebrow">Інформатика · C++</div>
+      <h1>Динамічне програмування</h1>
+      <p class="muted">Тест за уроками «Зайчик і сходинки», «Коник», «Робот і золоті монети» та «Рюкзак грабіжника». 9 завдань, 100 балів, близько 15 хвилин.</p>
+    </div>
+    ${resumable ? `<div class="panel stack"><p><b>Знайдено незавершений тест</b> (${esc(saved.name)}, ${esc(saved.cls)}). Можна продовжити з того місця, де зупинилися.</p><div class="actions"><button class="btn" id="resume">Продовжити тест</button></div></div>` : ""}
+    ${finishedSaved ? `<div class="panel stack"><p><b>Ви вже завершили тест</b> (${esc(saved.name)}): ${fmtPts(saved.total)} балів.</p><div class="actions"><button class="btn ghost" id="showres">Переглянути результат</button></div></div>` : ""}
+    <form class="panel stack" id="startForm" novalidate>
+      <label class="field">Прізвище та ім'я<input class="text" id="fName" autocomplete="name" placeholder="Наприклад, Коваленко Марія" maxlength="60"></label>
+      <label class="field">Клас<input class="text" id="fClass" placeholder="Наприклад, 10-А" maxlength="12"></label>
+      <fieldset style="border:0;padding:0;margin:0" class="stack">
+        <legend class="eyebrow" style="margin-bottom:8px">Режим</legend>
+        <div class="modes">
+          <label class="mode"><input type="radio" name="mode" value="control" id="mControl" checked><span><b>Контроль</b><small>Одна спроба на кожне завдання. Правильні відповіді — після завершення.</small></span></label>
+          <label class="mode"><input type="radio" name="mode" value="train" id="mTrain"><span><b>Тренування</b><small>Відповідь видно одразу, друга спроба дає половину балів.</small></span></label>
+        </div>
+      </fieldset>
+      <p class="warn" id="startErr" hidden>Введіть прізвище, ім'я та клас.</p>
+      <div class="actions"><button class="btn" type="submit" id="startBtn">Далі</button></div>
+    </form>
+  </section>`;
+  if(resumable) $("#resume").onclick=()=>{ S=saved; Q=buildQuestions(S.seed); render(); };
+  if(finishedSaved) $("#showres").onclick=()=>{ S=saved; Q=buildQuestions(S.seed); render(); };
+  $("#startForm").onsubmit = e => {
+    e.preventDefault();
+    const name=$("#fName").value.trim(), cls=$("#fClass").value.trim();
+    if(name.length<3 || !cls){ $("#startErr").hidden=false; return; }
+    const mode=document.querySelector('input[name="mode"]:checked').value;
+    S=newState(name, cls, mode); Q=buildQuestions(S.seed); save(); render();
+  };
+}
+
+function renderIntro(){
+  const ctl = S.mode==="control";
+  app.innerHTML = `
+  <section class="screen stack" style="padding-top:28px">
+    <h2>Перед початком</h2>
+    <div class="panel stack">
+      <ul class="plain">
+        <li>6 блоків, 9 завдань, разом 100 балів. Час не обмежено.</li>
+        ${ctl ? "<li>Кожне завдання здається <b>один раз</b>, повернутися до нього не можна.</li>" : "<li>Після відповіді одразу видно, чи правильно.</li><li>Якщо помилилися, можна спробувати ще раз за половину балів.</li>"}
+        <li>Кнопка «Підказка» є не всюди. Вона зменшує бал за завдання <b>вдвічі</b>.</li>
+        <li>Рахуйте на папері. Калькулятор, середовище програмування і сайт з уроками не використовуємо.</li>
+        <li>Жовті клітинки треба заповнити числами.</li>
+      </ul>
+      <p class="note">Учень: ${esc(S.name)}, ${esc(S.cls)} · варіант ${S.seed}</p>
+    </div>
+    <div class="actions"><button class="btn ghost" id="back">Змінити дані</button><button class="btn" id="go">Почати</button></div>
+  </section>`;
+  $("#back").onclick=()=>{ store.clear(); S=null; render(); };
+  $("#go").onclick=()=>{ S.started=Date.now(); S.screen="q"; save(); render(); };
+}
+
+/* ----- question rendering ----- */
+function tableHtml({cells, ask=[], rowLabels, colLabels, cornerLabel="", cls="", resp={}, review=false, inputs=true}){
+  const askSet=new Set(ask.map(([i,j])=>i+","+j));
+  let h=`<table class="dp"><thead><tr><th>${esc(cornerLabel)}</th>${colLabels.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  cells.forEach((row,i)=>{
+    h+=`<tr><th class="rowh">${esc(rowLabels[i])}</th>`;
+    row.forEach((v,j)=>{
+      const k=i+","+j;
+      if(askSet.has(k) && inputs){
+        const val=resp[k]??"";
+        if(review){
+          const right = String(val).trim()!=="" && Number(val)===v;
+          h+= right ? `<td class="ok">${v}</td>` : `<td class="no" title="Ваша відповідь: ${esc(val||"—")}">${val!==""?`<s class="wrong">${esc(val)}</s>`:""}${v}</td>`;
+          return;
+        }
+        const st="ask";
+        h+=`<td class="${st}"><input data-k="${k}" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${esc(val)}" aria-label="клітинка ${i}, ${j}" ${review?"disabled":""}></td>`;
+      } else h+=`<td class="${cls}">${v}</td>`;
+    });
+    h+="</tr>";
+  });
+  return h+"</tbody></table>";
+}
+function srcTable(src){ return `<figure><figcaption>${esc(src.caption)}</figcaption><div class="scroll">${tableHtml({cells:src.cells, rowLabels:src.cells.map((_,i)=>String(i)), colLabels:src.cells[0].map((_,j)=>String(j)), cornerLabel:"", cls:"src", inputs:false})}</div></figure>`; }
+
+function bodyHtml(q, resp, review){
+  resp = resp ?? null;
+  switch(q.type){
+    case "single": case "multi": {
+      const t = q.type==="single" ? "radio" : "checkbox";
+      return `<div class="opts" role="${q.type==='single'?'radiogroup':'group'}">${q.options.map(([id,txt])=>{
+        const checked = q.type==="single" ? resp===id : (resp||[]).includes(id);
+        const correct = q.type==="single" ? q.answer===id : q.answer.includes(id);
+        const cls = review ? (correct ? "ok" : (checked ? "no" : "")) : "";
+        return `<label class="opt ${cls}"><input type="${t}" name="opt" value="${id}" ${checked?"checked":""} ${review?"disabled":""}><span>${esc(txt)}</span></label>`;
+      }).join("")}</div>`;
+    }
+    case "match": {
+      return `<div class="match">${q.left.map(([k,txt])=>{
+        const v = resp?.[k] ?? "";
+        const st = review ? (v===q.answer[k] ? "border-color:var(--good)" : "border-color:var(--bad)") : "";
+        return `<div class="match-row"><span class="lbl">${esc(txt)}</span><select data-k="${k}" style="${st}" ${review?"disabled":""} aria-label="${esc(txt)}"><option value="">— оберіть —</option>${q.right.map(([id,rt])=>`<option value="${id}" ${v===id?"selected":""}>${esc(rt)}</option>`).join("")}</select></div>`;
+      }).join("")}</div>`;
+    }
+    case "number":
+      return `${q.src?`<div class="tables">${srcTable(q.src)}</div>`:""}<label class="row"><span>Відповідь:</span><input class="num" id="numIn" inputmode="numeric" pattern="[0-9]*" maxlength="6" value="${esc(resp??"")}" ${review?"disabled":""}></label>`;
+    case "bugLine":
+      return `<div class="code" role="group" aria-label="Код програми">${q.code.map((ln,i)=>{
+        const n=i+1, sel=resp===n;
+        const cls = review ? (n===q.answer ? "ok" : (sel ? "no" : "")) : "";
+        return `<button type="button" class="ln ${cls}" data-n="${n}" aria-pressed="${sel}" ${review?"disabled":""}><span class="no">${n}</span>${esc(ln)}</button>`;
+      }).join("")}</div>`;
+    case "array": {
+      const n=q.val.length, r=resp||{};
+      const cells=[q.val, q.answer];
+      const ask=[]; for(let i=0;i<n;i++) if(!q.given.includes(i)) ask.push([1,i]);
+      const respMap={}; for(let i=0;i<n;i++) if(r[i]!=null) respMap["1,"+i]=r[i];
+      return `<div class="scroll">${tableHtml({cells, ask, rowLabels:["val[i]","total[i]"], colLabels:[...Array(n)].map((_,i)=>String(i)), cornerLabel:"i", resp:respMap, review})}</div>`;
+    }
+    case "grid":
+      return `<div class="tables">${q.src?srcTable(q.src):""}<figure><figcaption>${esc(q.caption)}</figcaption><div class="scroll">${tableHtml({cells:q.cells, ask:q.ask, rowLabels:q.rowLabels, colLabels:q.colLabels, cornerLabel:q.cornerLabel, resp:resp||{}, review})}</div></figure></div>`;
+    case "cellPath": {
+      const sel=new Set(resp||[]), ans=new Set(q.answer);
+      return `<div class="marks">${q.val.map((v,i)=>{
+        const cls = review ? (ans.has(i) ? (sel.has(i)?"ok":"no") : (sel.has(i)?"no":"")) : "";
+        return `<button type="button" class="mark ${cls}" data-i="${i}" aria-pressed="${sel.has(i)}" ${review?"disabled":""}><span class="i">№${i}</span><span class="v">${v}</span><span class="t">${q.total[i]}</span></button>`;
+      }).join("")}</div><p class="note" style="text-align:center">Велике число — val[i], синє — total[i]. ${review?"":"Повторне торкання знімає позначку."}</p>`;
+    }
+  }
+  return "";
+}
+
+function readResp(q, root){
+  switch(q.type){
+    case "single": { const c=root.querySelector('input[name="opt"]:checked'); return c?c.value:null; }
+    case "multi": return [...root.querySelectorAll('input[name="opt"]:checked')].map(x=>x.value);
+    case "match": { const o={}; root.querySelectorAll("select[data-k]").forEach(s=>{ if(s.value) o[s.dataset.k]=s.value; }); return o; }
+    case "number": return $("#numIn",root).value.trim();
+    case "bugLine": { const b=root.querySelector('.ln[aria-pressed="true"]'); return b?Number(b.dataset.n):null; }
+    case "array": { const o={}; root.querySelectorAll("input[data-k]").forEach(x=>{ const i=Number(x.dataset.k.split(",")[1]); if(x.value.trim()!=="") o[i]=x.value.trim(); }); return o; }
+    case "grid": { const o={}; root.querySelectorAll("input[data-k]").forEach(x=>{ if(x.value.trim()!=="") o[x.dataset.k]=x.value.trim(); }); return o; }
+    case "cellPath": return [...root.querySelectorAll('.mark[aria-pressed="true"]')].map(b=>Number(b.dataset.i));
+  }
+}
+function isEmpty(q, resp){
+  if(resp==null) return true;
+  if(q.type==="number") return resp==="";
+  if(Array.isArray(resp)) return resp.length===0;
+  if(typeof resp==="object") return Object.keys(resp).length===0;
+  return false;
+}
+function missingCount(q, resp){
+  if(q.type==="grid") return q.ask.length - Object.keys(resp||{}).length;
+  if(q.type==="array") return (q.answer.length - q.given.length) - Object.keys(resp||{}).length;
+  if(q.type==="match") return q.left.length - Object.keys(resp||{}).length;
+  return 0;
+}
+
+function renderQuestion(){
+  const q=Q[S.idx], a=S.answers[q.id]||{}, b=BLOCKS.find(x=>x.id===q.block);
+  const train=S.mode==="train";
+  const locked = a.submitted;
+  const showFb = train && locked;
+  const resp = locked ? a.resp : (S.draft[q.id] ?? null);
+  const frac = locked ? fraction(q, a.resp) : 0;
+  const canRetry = train && locked && frac<1 && (a.attempt||1)===1;
+  const pts = award(q, a);
+  app.innerHTML = `
+  <section class="screen stack" id="qroot">
+    <div class="qhead"><div class="eyebrow">Блок ${q.block} · ${esc(b.title)}</div><div class="pts">${q.points} балів${a.hint?" · підказка −50 %":""}</div></div>
+    <div class="panel stack">
+      <div class="qtext">${q.text}</div>
+      <div id="body">${bodyHtml(q, resp, showFb)}</div>
+      ${q.hint && (a.hint) ? `<div class="hint"><b>Підказка.</b> ${q.hint}</div>` : ""}
+      <div id="hintAsk" hidden class="hint stack" style="gap:10px"><p>Показати підказку? Бал за це завдання зменшиться вдвічі.</p><div class="actions"><button class="btn ghost small" id="hintNo">Ні</button><button class="btn small" id="hintYes">Показати</button></div></div>
+      ${showFb ? `<div class="feedback ${frac===1?"ok":(frac>0?"part":"no")}"><b>${frac===1?"Правильно":(frac>0?"Частково правильно":"Неправильно")} · ${fmtPts(pts)} з ${q.points}</b><span>${q.explanation}</span></div>` : ""}
+      <p class="warn" id="emptyWarn" hidden></p>
+    </div>
+    <div class="actions">
+      ${q.hint && !a.hint && !locked ? `<button class="btn ghost" id="hintBtn">Підказка</button>` : ""}
+      <span class="spacer"></span>
+      ${canRetry ? `<button class="btn ghost" id="retry">Ще раз (½ балів)</button>` : ""}
+      ${locked && train ? `<button class="btn" id="next">Далі</button>` : `<button class="btn" id="submit">${train?"Перевірити":"Відповісти"}</button>`}
+    </div>
+  </section>`;
+  const root=$("#qroot");
+  if(!locked){
+    // interactions
+    root.querySelectorAll(".ln").forEach(btn=>btn.onclick=()=>{ root.querySelectorAll(".ln").forEach(x=>x.setAttribute("aria-pressed","false")); btn.setAttribute("aria-pressed","true"); keepDraft(); });
+    root.querySelectorAll(".mark").forEach(btn=>btn.onclick=()=>{ btn.setAttribute("aria-pressed", btn.getAttribute("aria-pressed")==="true"?"false":"true"); keepDraft(); });
+    root.querySelectorAll("input,select").forEach(el=>el.addEventListener("input", keepDraft));
+    root.querySelectorAll("input[data-k]").forEach(el=>el.addEventListener("input",()=>{ el.value=el.value.replace(/[^0-9]/g,""); }));
+    const num=$("#numIn",root); if(num) num.addEventListener("input",()=>{ num.value=num.value.replace(/[^0-9]/g,""); });
+    // Enter in a table cell jumps to the next one
+    const cellInputs=[...root.querySelectorAll("input[data-k]")];
+    cellInputs.forEach((el,i)=>el.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); (cellInputs[i+1]||$("#submit")).focus(); } }));
+    const hb=$("#hintBtn"); if(hb) hb.onclick=()=>{ $("#hintAsk").hidden=false; hb.hidden=true; };
+    const hn=$("#hintNo"); if(hn) hn.onclick=()=>{ $("#hintAsk").hidden=true; if(hb) hb.hidden=false; };
+    const hy=$("#hintYes"); if(hy) hy.onclick=()=>{ keepDraft(); S.answers[q.id]={...(S.answers[q.id]||{}), hint:true}; save(); renderQuestion(); };
+    let confirmEmpty=false;
+    $("#submit").onclick=()=>{
+      const r=readResp(q, root);
+      const miss = isEmpty(q,r) ? -1 : missingCount(q,r);
+      if(miss!==0 && !confirmEmpty){
+        const w=$("#emptyWarn"); w.hidden=false;
+        w.textContent = miss<0 ? "Ви ще не дали відповіді. Натисніть кнопку ще раз, щоб усе одно продовжити." : `Не заповнено полів: ${miss}. Натисніть кнопку ще раз, щоб усе одно продовжити.`;
+        confirmEmpty=true; return;
+      }
+      S.answers[q.id]={...(S.answers[q.id]||{}), resp:r, submitted:true, attempt:(S.answers[q.id]?.attempt||1)};
+      delete S.draft[q.id]; save();
+      if(train) renderQuestion(); else advance();
+      updateBar();
+    };
+  } else {
+    const n=$("#next"); if(n) n.onclick=advance;
+    const rt=$("#retry"); if(rt) rt.onclick=()=>{ S.draft[q.id]=a.resp; S.answers[q.id]={hint:a.hint, attempt:2}; save(); renderQuestion(); updateBar(); };
+  }
+  function keepDraft(){ S.draft[q.id]=readResp(q, root); save(); }
+}
+
+function advance(){
+  const q=Q[S.idx], nxt=Q[S.idx+1];
+  if(!nxt){ finish(); return; }
+  if(nxt.block!==q.block){ S.screen="block"; save(); render(); return; }
+  S.idx++; save(); render();
+}
+
+function blockScore(bid){ const qs=Q.filter(q=>q.block===bid); return {got:qs.reduce((s,q)=>s+award(q,S.answers[q.id]),0), max:qs.reduce((s,q)=>s+q.points,0)}; }
+
+function renderBlockDone(){
+  const q=Q[S.idx], b=BLOCKS.find(x=>x.id===q.block), nb=BLOCKS.find(x=>x.id===Q[S.idx+1].block);
+  const sc=blockScore(b.id);
+  app.innerHTML = `
+  <section class="screen stack" style="padding-top:12px">
+    <div class="panel stack">
+      <div class="eyebrow">Блок ${b.id} завершено</div>
+      <h2>${esc(b.title)}</h2>
+      ${S.mode==="train" ? `<p>${fmtPts(sc.got)} з ${sc.max} балів.</p>` : `<p class="muted">Відповіді збережено. Результати буде видно наприкінці.</p>`}
+    </div>
+    <p>Далі: <b>блок ${nb.id} · ${esc(nb.title)}</b></p>
+    <div class="actions"><button class="btn" id="cont">Продовжити</button></div>
+  </section>`;
+  $("#cont").onclick=()=>{ S.idx++; S.screen="q"; save(); render(); };
+  $("#cont").focus();
+}
+
+function finish(){
+  S.finished=Date.now(); S.screen="results";
+  S.total=Q.reduce((s,q)=>s+award(q,S.answers[q.id]),0);
+  save(); render();
+}
+
+function checksum(str){ let h=2166136261; for(const ch of str){ h^=ch.codePointAt(0); h=Math.imul(h,16777619); } return (h>>>0).toString(36).toUpperCase().slice(0,5); }
+function resultCode(){
+  const parts = BLOCKS.map(b=>{ const s=blockScore(b.id); return `${b.id}${fmtPts(s.got)}/${s.max}`; }).join(" ");
+  const mins = Math.max(1, Math.round((S.finished-S.started)/60000));
+  const d=new Date(S.finished); const date=`${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  const body = `ДП-тест | ${S.name}, ${S.cls} | ${fmtPts(S.total)}/100, оцінка ${gradeOf(S.total)} | ${parts} | ${S.mode==="control"?"контроль":"тренування"}, ${mins} хв | варіант ${S.seed} | ${date}`;
+  return body + " | #" + checksum(body);
+}
+
+function renderResults(){
+  const total=S.total, grade=gradeOf(total);
+  const code=resultCode();
+  app.innerHTML = `
+  <section class="screen stack" style="padding-top:28px">
+    <div class="stack" style="gap:6px">
+      <div class="eyebrow">Тест завершено</div>
+      <h1>${esc(S.name)}</h1>
+      <p class="muted">${esc(S.cls)} · ${S.mode==="control"?"контроль":"тренування"} · варіант ${S.seed}</p>
+    </div>
+    <div class="panel score">
+      <div><div class="big">${fmtPts(total)}</div><div class="muted">балів зі 100</div></div>
+      <div><div class="grade">${grade}</div><div class="muted">за 12-бальною шкалою</div></div>
+    </div>
+    <div class="panel stack">
+      <h3>Надішліть цей рядок учителю</h3>
+      <div class="codebox" id="code">${esc(code)}</div>
+      <div class="actions"><span class="note" id="copied" style="flex:1"></span><button class="btn small" id="copy">Скопіювати</button></div>
+    </div>
+    <div class="panel stack">
+      <h3>Результат за блоками</h3>
+      <div class="bars">${BLOCKS.map(b=>{ const s=blockScore(b.id), p=s.got/s.max, weak=p<0.6;
+        return `<div class="barrow"><span class="name">${b.id}. ${esc(b.title)}</span><span class="val">${fmtPts(s.got)} / ${s.max}</span><div class="track"><div class="fill ${weak?"weak":""}" style="width:${Math.round(p*100)}%"></div></div>${weak&&b.lesson?`<a href="${LESSON_BASE}${b.lesson}" target="_blank" rel="noopener">Повторити урок «${esc(b.title)}» ↗</a>`:""}</div>`; }).join("")}</div>
+    </div>
+    <div class="stack">
+      <h3>Розбір завдань</h3>
+      <div class="review">${Q.map((q,i)=>{ const a=S.answers[q.id], got=award(q,a), f=a?.submitted?fraction(q,a.resp):0;
+        const st = !a?.submitted ? ["no","Без відповіді"] : f===1 ? ["ok","Правильно"] : f>0 ? ["part","Частково"] : ["no","Неправильно"];
+        return `<details class="ritem"><summary class="top" style="cursor:pointer;list-style:none"><span><b>${i+1}.</b> ${esc(BLOCKS.find(b=>b.id===q.block).title)}${a?.hint?" · 💡":""}</span><span class="chip ${st[0]}">${st[1]} · ${fmtPts(got)}/${q.points}</span></summary>
+          <div class="stack" style="margin-top:10px"><div class="qtext">${q.text}</div>${bodyHtml(q, a?.resp??null, true)}<div class="feedback ${st[0]==="ok"?"ok":st[0]==="part"?"part":"no"}"><span>${q.explanation}</span></div></div></details>`; }).join("")}</div>
+      <p class="note">Торкніться завдання, щоб побачити свою відповідь і правильну.</p>
+    </div>
+    <div class="actions"><button class="btn ghost" id="again">Новий учень</button></div>
+  </section>`;
+  $("#copy").onclick=()=>{
+    const ok=()=>{$("#copied").textContent="Скопійовано";};
+    const fallback=()=>{ const r=document.createRange(); r.selectNodeContents($("#code")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copied").textContent="Текст виділено — скопіюйте вручну"; };
+    try{ navigator.clipboard.writeText(code).then(ok, fallback); }catch(e){ fallback(); }
+  };
+  let sure=false;
+  $("#again").onclick=e=>{ if(!sure){ sure=true; e.target.textContent="Точно? Результат на цьому пристрої зникне"; return; } store.clear(); S=null; Q=[]; render(); };
+}
+
+/* boot */
+render();
+window.__dpTest = { buildQuestions, fraction, award, hopper, knapsack, stairs, robot };
+})();
+</script>
+
+</body></html>
